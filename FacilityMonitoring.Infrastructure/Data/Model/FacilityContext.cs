@@ -28,7 +28,7 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
             optionsBuilder.UseSqlServer("server=172.20.4.20;database=FacilityMonitoringTesting;" +
-                "User Id=aelmendorf;Password=Drizzle123!;");
+                "User Id=***;Password=***;");
         }
 
         protected override void OnModelCreating(ModelBuilder builder) {
