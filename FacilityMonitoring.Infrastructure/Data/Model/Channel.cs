@@ -28,7 +28,7 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
         public ModbusAddress? ModbusAddress { get; set; }
         public int ModbusDeviceId { get; set; }
         public ModbusDevice? ModbusDevice { get; set; }
-        public ICollection<ChannelReading> Readings { get; set; }
+        public ICollection<ChannelReading>? Readings { get; set; }
     }
 
     public class DiscreteInput : Channel {

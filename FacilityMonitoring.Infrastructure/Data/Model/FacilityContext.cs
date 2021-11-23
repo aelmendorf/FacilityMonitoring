@@ -46,6 +46,9 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
             builder.Entity<Channel>()
                 .OwnsOne(p => p.ModbusAddress);
 
+            builder.Entity<ModbusDevice>()
+                .OwnsOne(p => p.NetworkConfiguration);
+
             builder.Entity<FacilityAction>()
                 .OwnsMany(p => p.ActionOutputs, a => {
                     a.WithOwner().HasForeignKey("OwnerId");
