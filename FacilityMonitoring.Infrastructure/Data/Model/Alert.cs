@@ -6,7 +6,6 @@
         public bool Enabled { get; set; }
         public int ChannelId { get; set; }
         public Channel? Channel { get; set; }
-
         public int FacilityActionId { get; set; }
         public FacilityAction? FacilityAction { get; set; }
     }

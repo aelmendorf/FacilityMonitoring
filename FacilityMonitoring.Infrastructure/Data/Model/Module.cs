@@ -18,5 +18,6 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
         public int Slot { get; set; }
         public int ChannelCount { get; set; }
         public ModuleChannel ModuleChannel { get; set; }
+        public ICollection<MonitoringBox> MonitoringBoxes { get; set; } = new List<MonitoringBox>();
     }
 }

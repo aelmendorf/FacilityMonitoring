@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31912.275
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FacilityMonitoring.Infrastructure", "FacilityMonitoring.Infrastructure\FacilityMonitoring.Infrastructure.csproj", "{CDC5581F-BE93-4907-A2A8-11F9CF6B3407}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FacilityMonitoring.Infrastructure", "FacilityMonitoring.Infrastructure\FacilityMonitoring.Infrastructure.csproj", "{CDC5581F-BE93-4907-A2A8-11F9CF6B3407}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FacilityMonitoring.ConsoleTesting", "FacilityMonitoring.ConsoleTesting\FacilityMonitoring.ConsoleTesting.csproj", "{44C76C89-26B8-4FAE-93CC-9F2F6C530DDF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{CDC5581F-BE93-4907-A2A8-11F9CF6B3407}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CDC5581F-BE93-4907-A2A8-11F9CF6B3407}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CDC5581F-BE93-4907-A2A8-11F9CF6B3407}.Release|Any CPU.Build.0 = Release|Any CPU
+		{44C76C89-26B8-4FAE-93CC-9F2F6C530DDF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{44C76C89-26B8-4FAE-93CC-9F2F6C530DDF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{44C76C89-26B8-4FAE-93CC-9F2F6C530DDF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{44C76C89-26B8-4FAE-93CC-9F2F6C530DDF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
