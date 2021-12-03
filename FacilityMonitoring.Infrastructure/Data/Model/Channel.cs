@@ -8,7 +8,7 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
     [Owned]
     public class ChannelAddress {
         public int Channel { get; set; }
-        public int ModbusSlot { get; set; }
+        public int ModuleSlot { get; set; }
     }
 
     [Owned]
@@ -44,5 +44,6 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
 
     public class DiscreteOutput:Channel {
         public DiscreteState ChannelState { get; set; } 
+        public DiscreteState StartState { get; set; }
     }
 }
