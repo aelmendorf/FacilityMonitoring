@@ -31,14 +31,13 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
         public ICollection<FacilityZone> Zones { get; set; } = new List<FacilityZone>();
     }
 
-
     public class DiscreteInput : Channel {
-        public DiscreteAlert? DiscreteAlert { get; set; }
+        public DiscreteAlert DiscreteAlert { get; set; }
     }
     
     public class AnalogInput : Channel {
-        public int SensorId { get; set; }
-        public Sensor? Sensor { get; set; }
+        public int? SensorId { get; set; }
+        public Sensor Sensor { get; set; }
         public ICollection<AnalogAlert> AnalogAlerts { get; set; } = new List<AnalogAlert>();
     }
 

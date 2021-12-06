@@ -11,6 +11,11 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
     public class FacilityContext:DbContext {
         public DbSet<ModbusDevice> ModbusDevices { get; set; }
         public DbSet<Module> Modules { get; set; }
+
+        public void EnsureCreated() {
+            throw new NotImplementedException();
+        }
+
         public DbSet<Channel> Channels { get; set; }
         public DbSet<Sensor> Sensors { get; set; }
         public DbSet<Alert> Alerts { get; set; }
@@ -43,6 +48,10 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
                 .OwnsOne(p => p.ModbusConfig);
 
             builder.Entity<FacilityAction>()
+                .Property(e => e.Id)
+                .ValueGeneratedNever();
+
+            builder.Entity<FacilityAction>()
                 .OwnsMany(p => p.ActionOutputs, a => {
                     a.WithOwner().HasForeignKey("OwnerId");
                     a.Property<int>("Id");
@@ -67,23 +76,14 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
                 .WithMany(p => p.MonitoringBoxes)
                 .UsingEntity(j => j.ToTable("BoxModules"));
 
-            builder.Entity<Alert>()
-                .HasOne(p => p.FacilityAction)
-                .WithMany(p => p.Alerts)
-                .HasForeignKey(p => p.FacilityActionId)
-                .IsRequired(true)
-                .OnDelete(DeleteBehavior.ClientSetNull);
-
             builder.Entity<DiscreteInput>()
                 .HasOne(p => p.DiscreteAlert)
                 .WithOne(p => p.Channel as DiscreteInput)
-                .HasForeignKey<DiscreteAlert>(e => e.ChannelId)
                 .IsRequired(false);
 
             builder.Entity<AnalogInput>()
                 .HasMany(p => p.AnalogAlerts)
                 .WithOne(p => p.Channel as AnalogInput)
-                .HasForeignKey(e => e.ChannelId)
                 .IsRequired(false); 
 
             builder.Entity<AnalogInput>()
@@ -92,11 +92,23 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
                 .HasForeignKey(p => p.SensorId)
                 .IsRequired(false);
 
+            builder.Entity<Sensor>()
+                .HasMany(p => p.AnalogInputs)
+                .WithOne(p => p.Sensor)
+                .HasForeignKey(p => p.SensorId)
+                .IsRequired(false);
+
             builder.Entity<FacilityAction>()
                 .HasMany(p => p.Alerts)
                 .WithOne(p => p.FacilityAction)
                 .HasForeignKey(p => p.FacilityActionId)
-                .IsRequired(true);
+                .IsRequired(false);
+
+            builder.Entity<Alert>()
+                .HasOne(p => p.FacilityAction)
+                .WithMany(p => p.Alerts)
+                .HasForeignKey(e => e.FacilityActionId)
+                .IsRequired(false);
 
             builder.Entity<ModbusDevice>()
                 .HasMany(p => p.Zones)
@@ -114,6 +126,102 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
                 .HasForeignKey(p => p.ZoneParentId)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            SeedSensors(builder);
+            SeedModules(builder);
+        }
+
+        private void SeedSensors(ModelBuilder builder) {
+            Sensor h2 = new Sensor();
+            h2.Id = 1;
+            h2.Name = "H2 Detector-PPM";
+            h2.Description = "H2 Gas Detector";
+            h2.Slope = 62.5;
+            h2.Offset = -250;
+            h2.Factor = 1;
+            h2.Units = "PPM";
+
+            Sensor o2 = new Sensor();
+            o2.Id = 2;
+            o2.Name = "O2 Detector";
+            o2.DisplayName = "O2";
+            o2.Description = "O2 Gas Detector";
+            o2.Slope = 4.69;
+            o2.Offset = -18.75;
+            o2.Factor = 1;
+            o2.Units = "PPM";
+
+            Sensor nh3 = new Sensor();
+            nh3.Id = 3;
+            nh3.Name = "NH3 Detector";
+            nh3.DisplayName = "NH3";
+            nh3.Description = "NH3 Gas Detector";
+            nh3.Slope = 1.56;
+            nh3.Offset = -6.25;
+            nh3.Factor = 1;
+            nh3.Units = "PPM";
+
+            Sensor n2 = new Sensor();
+            n2.Id = 4;
+            n2.Name = "N2 Detector";
+            n2.DisplayName = "N2";
+            n2.Description = "N2 Gas Detector";
+            n2.Slope = 5.00;
+            n2.Offset = -140;
+            n2.Factor = 1;
+            n2.Units = "PPM";
+
+            Sensor h2_lel = new Sensor();
+            h2_lel.Id = 5;
+            h2_lel.Name = "H2 LEL Detector";
+            h2_lel.DisplayName = "H2-LEL";
+            h2_lel.Description = "H2 Explosion Gas Detector";
+            h2_lel.Slope = 6.25;
+            h2_lel.Offset = -25;
+            h2_lel.Factor = 1;
+            h2_lel.Units = "LEL";
+
+            builder.Entity<Sensor>().HasData(h2, o2, nh3, n2, h2_lel);
+
+        }
+
+        private void SeedModules(ModelBuilder builder) {
+            Module dModule1 = new Module();
+            dModule1.Id = 1;
+            dModule1.Name = "P1-16ND3";
+            dModule1.Slot = 1;
+            dModule1.ChannelCount = 16;
+            dModule1.ModuleChannel = ModuleChannel.DiscreteInput;
+
+            Module dModule2 = new Module();
+            dModule2.Id = 2;
+            dModule2.Name = "P1-16ND3";
+            dModule2.Slot = 2;
+            dModule2.ChannelCount = 16;
+            dModule2.ModuleChannel = ModuleChannel.DiscreteInput;
+
+            Module aModule1 = new Module();
+            aModule1.Id = 3;
+            aModule1.Name = "P1-08ADL-1";
+            aModule1.Slot = 3;
+            aModule1.ChannelCount = 8;
+            aModule1.ModuleChannel = ModuleChannel.AnalogInput;
+
+            Module aModule2 = new Module();
+            aModule2.Id = 4;
+            aModule2.Name = "P1-08ADL-1";
+            aModule2.Slot = 4;
+            aModule2.ChannelCount = 8;
+            aModule2.ModuleChannel = ModuleChannel.AnalogInput;
+
+            Module oModule = new Module();
+            oModule.Id = 5;
+            oModule.Name = "P1-08TD2";
+            oModule.Slot = 5;
+            oModule.ChannelCount = 8;
+            oModule.ModuleChannel = ModuleChannel.DiscreteOutput;
+
+            builder.Entity<Module>().HasData(dModule1, dModule2, aModule1, aModule2, oModule);
         }
 
     }
