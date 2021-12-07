@@ -11,11 +11,6 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
     public class FacilityContext:DbContext {
         public DbSet<ModbusDevice> ModbusDevices { get; set; }
         public DbSet<Module> Modules { get; set; }
-
-        public void EnsureCreated() {
-            throw new NotImplementedException();
-        }
-
         public DbSet<Channel> Channels { get; set; }
         public DbSet<Sensor> Sensors { get; set; }
         public DbSet<Alert> Alerts { get; set; }
@@ -33,6 +28,7 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
             //Channel inheritance
             builder.Entity<DiscreteInput>().HasBaseType<Channel>();
             builder.Entity<AnalogInput>().HasBaseType<Channel>();
+            builder.Entity<VirtualInput>().HasBaseType<DiscreteInput>();
             //Alert inheritance
             builder.Entity<DiscreteAlert>().HasBaseType<Alert>();
             builder.Entity<AnalogAlert>().HasBaseType<Alert>();
@@ -77,14 +73,16 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
                 .UsingEntity(j => j.ToTable("BoxModules"));
 
             builder.Entity<DiscreteInput>()
-                .HasOne(p => p.DiscreteAlert)
-                .WithOne(p => p.Channel as DiscreteInput)
+                .HasOne(e => e.DiscreteAlert)
+                .WithOne(e => e.DiscreteInput)
+                .HasForeignKey<DiscreteAlert>(p => p.DiscreteInputId)
                 .IsRequired(false);
 
             builder.Entity<AnalogInput>()
                 .HasMany(p => p.AnalogAlerts)
-                .WithOne(p => p.Channel as AnalogInput)
-                .IsRequired(false); 
+                .WithOne(p => p.AnalogInput)
+                .HasForeignKey(p => p.AnalogInputId)
+                .IsRequired(false);
 
             builder.Entity<AnalogInput>()
                 .HasOne(p => p.Sensor)

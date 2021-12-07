@@ -20,14 +20,13 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
     public abstract class Channel {
         public int Id { get; set; }
         public int SystemChannel { get; set; }
-        public bool IsVirtual { get; set; }
-        public bool Connected { get; set; }
         public string? Identifier { get; set; }
         public string? DisplayName { get; set; }
-        public ChannelAddress? ChannelAddress { get; set; }
         public ModbusAddress? ModbusAddress { get; set; }
+        public ChannelAddress? ChannelAddress { get; set; }
         public int ModbusDeviceId { get; set; }
         public ModbusDevice? ModbusDevice { get; set; }
+        public bool Connected { get; set; }
         public ICollection<FacilityZone> Zones { get; set; } = new List<FacilityZone>();
     }
 
@@ -41,8 +40,12 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
         public ICollection<AnalogAlert> AnalogAlerts { get; set; } = new List<AnalogAlert>();
     }
 
-    public class DiscreteOutput:Channel {
+    public class DiscreteOutput: Channel {
         public DiscreteState ChannelState { get; set; } 
         public DiscreteState StartState { get; set; }
+    }
+
+    public class VirtualInput : DiscreteInput {
+
     }
 }

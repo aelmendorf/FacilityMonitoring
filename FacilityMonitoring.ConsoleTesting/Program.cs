@@ -9,15 +9,13 @@ using Microsoft.EntityFrameworkCore;
 namespace FacilityMonitoring.ConsoleTesting {
     public class Program {
         static async Task Main(string[] args) {
-            var context = new FacilityContext();
-            context.EnsureCreated();
             //CreateModbusDevices();
             //await CreateOutputs();
             //await CreateFacilityActions();
             //await CreateDiscreteInputs();
             //await CreateAnalogInputs();
+            await CreateVirtualInputs();
         }
-
         static async Task CreateAnalogInputs() {
             Console.WriteLine("Creating EpiLab2 AnalogInputs");
             var context = new FacilityContext();
@@ -68,6 +66,32 @@ namespace FacilityMonitoring.ConsoleTesting {
                     Console.WriteLine("DiscreteInputs should be added");
                 } else {
                     Console.WriteLine("Error creating DiscreteInputs");
+                }
+
+            } else {
+                Console.WriteLine("Error: Could not find monitoring box");
+            }
+        }
+        static async Task CreateVirtualInputs() {
+            Console.WriteLine("Creating EpiLab2 VirtualInputs");
+            var context = new FacilityContext();
+            var monitoringBox = context.ModbusDevices.OfType<MonitoringBox>()
+                .Include(e => e.Channels)
+                .Include(e => e.Modules)
+                .AsTracking()
+                .FirstOrDefault();
+
+            var actions = context.FacilityActions.AsTracking().ToList();
+
+            if (monitoringBox != null) {
+                Console.WriteLine("Found Monitoring Box: {0}", monitoringBox.DisplayName);
+                var dInputs = await ParseVirtualChannels(monitoringBox, actions);
+                await context.AddRangeAsync(dInputs);
+                var ret = await context.SaveChangesAsync();
+                if (ret > 0) {
+                    Console.WriteLine("VirtualInputs should be added");
+                } else {
+                    Console.WriteLine("Error creating VirtualInputs");
                 }
 
             } else {
@@ -188,6 +212,7 @@ namespace FacilityMonitoring.ConsoleTesting {
                 }
                 input.DiscreteAlert.Bypass = elem["Alert"]["Bypass"].Value<bool>();
                 input.DiscreteAlert.Enabled = elem["Alert"]["Enabled"].Value<bool>();
+                
                 inputs.Add(input);
             }
             foreach(var input in inputs) {
@@ -290,7 +315,6 @@ namespace FacilityMonitoring.ConsoleTesting {
             aInput.ChannelAddress = new ChannelAddress();
             aInput.ChannelAddress.Channel = token["Address"]["Channel"].Value<int>();
             aInput.ChannelAddress.ModuleSlot = token["Address"]["Slot"].Value<int>();
-            aInput.IsVirtual = false;
             aInput.Identifier = "System Channel: " + aInput.SystemChannel;
             aInput.DisplayName = "Not Set";
             aInput.ModbusAddress = new ModbusAddress();
@@ -299,9 +323,11 @@ namespace FacilityMonitoring.ConsoleTesting {
             aInput.Connected = token["Connected"].Value<bool>();
             aInput.ModbusDevice = modDevice;
             aInput.AnalogAlerts = new List<AnalogAlert>();
+
             int a1 = token["A1"]["Action"].Value<int>()+1;
             int a2 = token["A1"]["Action"].Value<int>()+1;
             int a3 = token["A1"]["Action"].Value<int>()+1;
+
             FacilityAction action1 = actions.FirstOrDefault(e => e.Id ==a1);
             FacilityAction action2 = actions.FirstOrDefault(e => e.Id == a2);
             FacilityAction action3 = actions.FirstOrDefault(e => e.Id == a3);
@@ -351,7 +377,6 @@ namespace FacilityMonitoring.ConsoleTesting {
                     RegisterLength=1
                 },
                 SystemChannel = p["Output"].Value<int>(),
-                IsVirtual=false,
                 Connected=p["Connected"].Value<bool>(),
                 Identifier="Channel " + p["Output"].Value<int>().ToString(),
                 DisplayName="Not Set",
@@ -364,7 +389,37 @@ namespace FacilityMonitoring.ConsoleTesting {
             }
             return outputs;
         }
+        static async Task<IList<VirtualInput>> ParseVirtualChannels(ModbusDevice modbusDevice, IList<FacilityAction> actions) {
+            var vInputs = JArray.Parse(File.ReadAllText(@"C:\MonitorFiles\VIRTUAL.TXT"));
+            IList<VirtualInput> virtualInputs = vInputs.Select(e => CreateVirtualChannel(e, modbusDevice, actions)).ToList();
+            foreach(var input in virtualInputs) {
+                Console.WriteLine("VirtualInput: {0} ActionId: {1}",input.SystemChannel,input.DiscreteAlert.FacilityActionId);
+            }
+            return virtualInputs;
+        }
 
+        static VirtualInput CreateVirtualChannel(JToken token,ModbusDevice modbusDevice, IList<FacilityAction> actions) {
+            VirtualInput vInput = new VirtualInput();
+            vInput.SystemChannel = token["Input"].Value<int>();
+            vInput.ChannelAddress = new ChannelAddress();
+            vInput.ChannelAddress.Channel = 0;
+            vInput.ChannelAddress.ModuleSlot = 0;
+            vInput.ModbusAddress = new ModbusAddress();
+            vInput.ModbusAddress.Address = token["Coil"].Value<int>();
+            vInput.ModbusAddress.RegisterLength = 1;
+            vInput.Connected = token["Connected"].Value<bool>();
+            vInput.ModbusDevice = modbusDevice;
+            vInput.ModbusDeviceId = modbusDevice.Id;
+            vInput.DiscreteAlert = new DiscreteAlert();
+            vInput.DiscreteAlert.TriggerOn = token["Alert"]["TriggerOn"].Value<int>() == 1 ? DiscreteState.High : DiscreteState.Low;
+            int actionId = token["Alert"]["Action"].Value<int>() + 1;
+            if (actionId >= 1) {
+                vInput.DiscreteAlert.FacilityActionId = actionId;
+            }
+            vInput.DiscreteAlert.Bypass = token["Alert"]["Bypass"].Value<bool>();
+            vInput.DiscreteAlert.Enabled = token["Alert"]["Enabled"].Value<bool>();
+            return vInput;
+        }
         static ActionType ToActionType(int i) {
             switch(i) {
                 case 1: {
