@@ -5,6 +5,8 @@ using FacilityMonitoring.Infrastructure.Data.Model;
 using System.Text.Json;
 using Newtonsoft.Json.Linq;
 using Microsoft.EntityFrameworkCore;
+using MongoDB.Bson;
+using MongoDB.Driver;
 
 namespace FacilityMonitoring.ConsoleTesting {
     public class Program {
@@ -14,7 +16,51 @@ namespace FacilityMonitoring.ConsoleTesting {
             //await CreateFacilityActions();
             //await CreateDiscreteInputs();
             //await CreateAnalogInputs();
-            await CreateVirtualInputs();
+            //await CreateVirtualInputs();
+            //TestMongoInsert();
+            await ReadCollection();
+
+        }
+
+        static async Task ReadCollection() {
+            var client = new MongoClient("mongodb://172.20.3.30");
+            var database = client.GetDatabase("monitoring");
+            var collection = database.GetCollection<BsonDocument>("data");
+            var filter = Builders<BsonDocument>.Filter.Eq("_id",new BsonObjectId(new ObjectId("61b104432d4cacaf4d3e4164")));
+            var data = await collection.Find(filter).FirstOrDefaultAsync();
+            Console.WriteLine(data.ToString());
+        }
+
+        static void TestMongoInsert() {
+            var client = new MongoClient("mongodb://172.20.3.30");
+            var database = client.GetDatabase("monitoring");
+            var collectiion = database.GetCollection<BsonDocument>("data");
+            var document = new BsonDocument {
+                {"DeviceName","Epi2Monitoring" },
+                {"data",new BsonDocument{
+                    {"TimeStamp",DateTime.Now },
+                    {"AnalogInputs",new BsonArray {
+                        new BsonDocument{{"Name","Channel1"},{"Value",42.9}},
+                        new BsonDocument{{"Name","Channel2"},{"Value",78.5}},
+                        new BsonDocument{{"Name","Channel3"},{"Value",24.98}},
+                        new BsonDocument{{"Name","Channel4"},{"Value",45.77}}
+                    }},
+                    {"DiscreteInputs",new BsonArray {
+                        new BsonDocument{{"Name","Channel1"},{"Value",true}},
+                        new BsonDocument{{"Name","Channel2"},{"Value",false}},
+                        new BsonDocument{{"Name","Channel3"},{"Value",false}},
+                        new BsonDocument{{"Name","Channel4"},{"Value",true}}
+                    }},
+                    {"Coils",new BsonArray {
+                        new BsonDocument{{"Name","Channel1"},{"Value",false}},
+                        new BsonDocument{{"Name","Channel2"},{"Value",true}},
+                        new BsonDocument{{"Name","Channel3"},{"Value",false}},
+                        new BsonDocument{{"Name","Channel4"},{"Value",true}}
+                    }},
+                  }
+                }
+            };
+            collectiion.InsertOne(document);
         }
         static async Task CreateAnalogInputs() {
             Console.WriteLine("Creating EpiLab2 AnalogInputs");

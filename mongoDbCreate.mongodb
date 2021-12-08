@@ -1,0 +1,70 @@
+db.createCollection('device_data', {
+  validator: {
+    $jsonSchema: {
+      bsonType: 'object',
+      title: 'device_data',
+      properties: {
+        DeviceName: {
+          bsonType: 'string'
+        },
+        data: {
+          bsonType: 'array',
+          items: {
+            title: 'data',
+            properties: {
+              TimeStamp: {
+                bsonType: 'array',
+                items: {
+                  bsonType: 'timestamp'
+                }
+              },
+              AnalogInputs: {
+                bsonType: 'array',
+                items: {
+                  title: 'AnalogInput',
+                  properties: {
+                    Name: {
+                      bsonType: 'string'
+                    },
+                    Value: {
+                      bsonType: 'double'
+                    }
+                  }
+                }
+              },
+              DiscreteInputs: {
+                bsonType: 'array',
+                items: {
+                  title: 'DiscreteInput',
+                  properties: {
+                    Name: {
+                      bsonType: 'string'
+                    },
+                    Value: {
+                      bsonType: 'bool'
+                    }
+                  }
+                }
+              },
+              Coils: {
+                bsonType: 'array',
+                items: {
+                  title: 'Coil',
+                  properties: {
+                    Name: {
+                      bsonType: 'string'
+                    },
+                    Value: {
+                      bsonType: 'bool'
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  autoIndexId: true
+});
