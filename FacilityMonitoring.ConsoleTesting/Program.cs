@@ -7,6 +7,7 @@ using Newtonsoft.Json.Linq;
 using Microsoft.EntityFrameworkCore;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using FacilityMonitoring.Infrastructure.Data.MongoDB;
 
 namespace FacilityMonitoring.ConsoleTesting {
     public class Program {
@@ -18,11 +19,26 @@ namespace FacilityMonitoring.ConsoleTesting {
             //await CreateAnalogInputs();
             //await CreateVirtualInputs();
             //TestMongoInsert();
-            await ReadCollection();
+            // await ReadCollection();
+            //await CreateAndInsertModel();
+            await ReadAllCollection();
 
         }
 
-        static async Task ReadCollection() {
+        static async Task TestMongoWithEF() {
+            using var context = new FacilityContext();
+            var epi2 = await context.ModbusDevices.OfType<MonitoringBox>().AsTracking().FirstOrDefaultAsync(e => e.Id == 1);
+            if (epi2 != null) {
+                Console.WriteLine("Found {0} monitoring box",epi2.DisplayName);
+                var client = new MongoClient("mongodb://172.20.3.30");
+                var database = client.GetDatabase("monitoring");
+
+            } else {
+                Console.WriteLine("Error: Could not find monitoring box");
+            }
+        }
+
+        static async Task ReadOneCollection() {
             var client = new MongoClient("mongodb://172.20.3.30");
             var database = client.GetDatabase("monitoring");
             var collection = database.GetCollection<BsonDocument>("data");
@@ -31,10 +47,88 @@ namespace FacilityMonitoring.ConsoleTesting {
             Console.WriteLine(data.ToString());
         }
 
+        static async Task ReadAllCollection() {
+            var client = new MongoClient("mongodb://172.20.3.30");
+            var database = client.GetDatabase("monitoring");
+            var collection = database.GetCollection<Device>("data");
+            var data = await collection.Find(e => true).ToListAsync();
+            foreach(var record in data) {
+                Console.WriteLine(record.DeviceName);
+                Console.WriteLine("AnalogInputs: ");
+                foreach(var d in record.DeviceData) {
+                    Console.Write($"{d.TimeStamp}   ");
+                    foreach(var a in d.AnalogData) {
+                        Console.Write($"{a.Value}   ");
+                    }
+                    Console.WriteLine();
+                }
+            }
+        }
+
+        static async Task CreateAndInsertModel() {
+            var client = new MongoClient("mongodb://172.20.3.30");
+            var database = client.GetDatabase("monitoring");
+            var collection = database.GetCollection<Device>("data");
+            Device device = new Device();
+            device.DeviceName = "Monitoring Box ";
+            device.DeviceData = new List<DeviceData> {
+               new DeviceData() {
+                   TimeStamp = DateTime.Now,
+                   AnalogData = new List<AnalogData> {
+                    new AnalogData { Name = "Ch1", Value = 45.6 },
+                    new AnalogData { Name = "Ch2", Value = 87.4 },
+                    new AnalogData { Name = "Ch3", Value = 45.6 },
+                    new AnalogData { Name = "Ch4", Value = 12.3 },
+                    new AnalogData { Name = "Ch5", Value = 20.78 }
+                },
+                   DiscreteData = new List<DiscreteData> {
+                    new DiscreteData { Name = "Ch1", Value = true  },
+                    new DiscreteData { Name = "Ch2", Value = false },
+                    new DiscreteData { Name = "Ch3", Value = true  },
+                    new DiscreteData { Name = "Ch4", Value = false },
+                    new DiscreteData { Name = "Ch5", Value = false }
+                },
+                   CoilData = new List<CoilData> {
+                    new CoilData { Name = "Ch1", Value = true  },
+                    new CoilData { Name = "Ch2", Value = false },
+                    new CoilData { Name = "Ch3", Value = true  },
+                    new CoilData { Name = "Ch4", Value = false },
+                    new CoilData { Name = "Ch5", Value = false }
+                }
+               },
+               new DeviceData() {
+                   TimeStamp = new DateTime(2021,10,15),
+                   AnalogData = new List<AnalogData> {
+                    new AnalogData { Name = "Ch1", Value = 45.6 },
+                    new AnalogData { Name = "Ch2", Value = 45.6 },
+                    new AnalogData { Name = "Ch3", Value = 45.6 },
+                    new AnalogData { Name = "Ch4", Value = 45.6 },
+                    new AnalogData { Name = "Ch5", Value = 45.6 }
+                },
+                   DiscreteData = new List<DiscreteData> {
+                    new DiscreteData { Name = "Ch1", Value = true  },
+                    new DiscreteData { Name = "Ch2", Value = false },
+                    new DiscreteData { Name = "Ch3", Value = true  },
+                    new DiscreteData { Name = "Ch4", Value = false },
+                    new DiscreteData { Name = "Ch5", Value = false }
+                },
+                   CoilData = new List<CoilData> {
+                    new CoilData { Name = "Ch1", Value = true  },
+                    new CoilData { Name = "Ch2", Value = false },
+                    new CoilData { Name = "Ch3", Value = true  },
+                    new CoilData { Name = "Ch4", Value = false },
+                    new CoilData { Name = "Ch5", Value = false }
+                }
+               }
+            };
+            await collection.InsertOneAsync(device);
+        }
+
         static void TestMongoInsert() {
             var client = new MongoClient("mongodb://172.20.3.30");
             var database = client.GetDatabase("monitoring");
             var collectiion = database.GetCollection<BsonDocument>("data");
+            
             var document = new BsonDocument {
                 {"DeviceName","Epi2Monitoring" },
                 {"data",new BsonDocument{
