@@ -33,6 +33,7 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
         public bool BypassAlarms { get; set; }
         public double ReadInterval { get; set; }
         public double SaveInterval { get; set; }
+        public string? DataReference { get; set; }
         public ICollection<Channel> Channels { get; set; } = new List<Channel>();
         public ICollection<FacilityZone> Zones { get; set; } = new List<FacilityZone>();
     }

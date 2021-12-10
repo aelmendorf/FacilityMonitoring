@@ -27,7 +27,6 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
         public int ModbusDeviceId { get; set; }
         public ModbusDevice? ModbusDevice { get; set; }
         public bool Connected { get; set; }
-        public int MongoDBid { get; set; }
         public ICollection<FacilityZone> Zones { get; set; } = new List<FacilityZone>();
 
     }

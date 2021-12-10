@@ -9,7 +9,13 @@ using System.Threading.Tasks;
 
 
 namespace FacilityMonitoring.Infrastructure.Services {
-    public class DataRecordService {
+    public interface IDataRecordService {
+        Task<List<DeviceData>> GetAllDataAsync(string id);
+        Task<Device> GetDevice(string id);
+        Task<bool> UpdateAsync(string id, DeviceData data);
+    }
+
+    public class DataRecordService : IDataRecordService {
         private readonly IMongoCollection<Device> _devices;
         private readonly DatabaseSettings _settings;
 
@@ -20,18 +26,20 @@ namespace FacilityMonitoring.Infrastructure.Services {
             this._devices = database.GetCollection<Device>(this._settings.CollectionName);
         }
 
-        public async Task<List<Device>> GetAllAsync() {
-            return await this._devices.Find(e => true).ToListAsync();
+        public async Task<List<DeviceData>> GetAllDataAsync(string id) {
+            var device = await this._devices.Find(e => e.Id == id).FirstOrDefaultAsync();
+            return device.DeviceData.ToList();
         }
 
         public async Task<Device> GetDevice(string id) {
             return await this._devices.Find(e => e.Id == id).FirstOrDefaultAsync();
         }
 
-        public async Task UpdateAsync(string id,DeviceData data) {
-
+        public async Task<bool> UpdateAsync(string id, DeviceData data) {
+            var device = Builders<Device>.Filter.Eq(e => e.Id, id);
+            var push = Builders<Device>.Update.Push(d => d.DeviceData, data);
+            var result = await this._devices.UpdateOneAsync(device, push);
+            return result.IsAcknowledged;
         }
-
-        
     }
 }

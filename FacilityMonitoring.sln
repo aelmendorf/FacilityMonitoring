@@ -5,7 +5,19 @@ VisualStudioVersion = 17.0.31912.275
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FacilityMonitoring.Infrastructure", "FacilityMonitoring.Infrastructure\FacilityMonitoring.Infrastructure.csproj", "{CDC5581F-BE93-4907-A2A8-11F9CF6B3407}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FacilityMonitoring.ConsoleTesting", "FacilityMonitoring.ConsoleTesting\FacilityMonitoring.ConsoleTesting.csproj", "{44C76C89-26B8-4FAE-93CC-9F2F6C530DDF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FacilityMonitoring.ConsoleTesting", "FacilityMonitoring.ConsoleTesting\FacilityMonitoring.ConsoleTesting.csproj", "{44C76C89-26B8-4FAE-93CC-9F2F6C530DDF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FacilityMonitoring.DataLoggingService", "FacilityMonitoring.DataLoggingService\FacilityMonitoring.DataLoggingService.csproj", "{CEB2177A-36D3-4DE1-97C4-AF49026F9093}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C22E848C-6A07-4566-845D-298A4DE9B767}"
+	ProjectSection(SolutionItems) = preProject
+		Assembiles\Microsoft.Exchange.WebServices.NETStandard.deps.json = Assembiles\Microsoft.Exchange.WebServices.NETStandard.deps.json
+		Assembiles\Microsoft.Exchange.WebServices.NETStandard.dll = Assembiles\Microsoft.Exchange.WebServices.NETStandard.dll
+		Assembiles\Microsoft.Exchange.WebServices.NETStandard.pdb = Assembiles\Microsoft.Exchange.WebServices.NETStandard.pdb
+		Assembiles\NModbus4.deps.json = Assembiles\NModbus4.deps.json
+		Assembiles\NModbus4.dll = Assembiles\NModbus4.dll
+		Assembiles\NModbus4.pdb = Assembiles\NModbus4.pdb
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +33,10 @@ Global
 		{44C76C89-26B8-4FAE-93CC-9F2F6C530DDF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{44C76C89-26B8-4FAE-93CC-9F2F6C530DDF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{44C76C89-26B8-4FAE-93CC-9F2F6C530DDF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CEB2177A-36D3-4DE1-97C4-AF49026F9093}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CEB2177A-36D3-4DE1-97C4-AF49026F9093}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CEB2177A-36D3-4DE1-97C4-AF49026F9093}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CEB2177A-36D3-4DE1-97C4-AF49026F9093}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

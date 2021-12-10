@@ -21,20 +21,133 @@ namespace FacilityMonitoring.ConsoleTesting {
             //TestMongoInsert();
             // await ReadCollection();
             //await CreateAndInsertModel();
-            await ReadAllCollection();
+            //await ReadAllCollection();
+            //await CreateCollectionFromModel();
+            //await FindCollectionFromModel();
+            //await AppendMeasurment();
+            using var context = new FacilityContext();
+            var channels = await context.Channels.ToListAsync();
+            foreach(var ach in channels.OfType<AnalogInput>()) {
+                ach.Identifier = "Analog" + ach.SystemChannel;
+            }
 
+            foreach(var dch in channels.OfType<DiscreteInput>()) {
+                dch.Identifier = "Discrete" + dch.SystemChannel;
+            }
+
+            foreach(var vch in channels.OfType<VirtualInput>()) {
+                vch.Identifier = "Virtual" + vch.SystemChannel;
+            }
+
+            foreach (var och in channels.OfType<DiscreteOutput>()) {
+                och.Identifier = "Output" + och.SystemChannel;
+            }
+
+
+            context.UpdateRange(channels);
+            await context.SaveChangesAsync();
+            Console.WriteLine("Should be done");
         }
 
-        static async Task TestMongoWithEF() {
+        static async Task AppendMeasurment() {
             using var context = new FacilityContext();
-            var epi2 = await context.ModbusDevices.OfType<MonitoringBox>().AsTracking().FirstOrDefaultAsync(e => e.Id == 1);
-            if (epi2 != null) {
-                Console.WriteLine("Found {0} monitoring box",epi2.DisplayName);
+            var device = await context.ModbusDevices
+                .OfType<MonitoringBox>()
+                .Include(e=>e.Channels)
+                .FirstOrDefaultAsync(e => e.Id == 1);
+
+            if (device != null) {
                 var client = new MongoClient("mongodb://172.20.3.30");
                 var database = client.GetDatabase("monitoring");
+                var mDevices = database.GetCollection<Device>("data");
+                var deviceData = new DeviceData();
+                Random rand = new Random();
+                foreach(var analog in device.Channels.OfType<AnalogInput>()) {
+                    if (analog.Connected) {
+                        deviceData.AnalogData.Add(new AnalogData { Name = analog.Identifier, Value = rand.NextDouble()});
+                    }
+                }
+
+                foreach(var discrete in device.Channels.OfType<DiscreteInput>()) {
+                    if (discrete.Connected) {
+                        deviceData.DiscreteData.Add(new DiscreteData { Name = discrete.Identifier, Value = false });
+                    }
+                }
+
+                foreach(var coil in device.Channels.OfType<VirtualInput>()) {
+                    if (coil.Connected) {
+                        deviceData.CoilData.Add(new CoilData { Name = coil.Identifier, Value = true });
+                    }
+                }
+                //var deviceData = new DeviceData() {
+                //    TimeStamp = DateTime.Now,
+                //    AnalogData = new List<AnalogData> {
+                //            new AnalogData { Name = "Ch1", Value = 45.6 },
+                //            new AnalogData { Name = "Ch2", Value = 87.4 },
+                //            new AnalogData { Name = "Ch3", Value = 45.6 },
+                //            new AnalogData { Name = "Ch4", Value = 12.3 },
+                //            new AnalogData { Name = "Ch5", Value = 20.78 }
+                //        },
+                //    DiscreteData = new List<DiscreteData> {
+                //            new DiscreteData { Name = "Ch1", Value = true  },
+                //            new DiscreteData { Name = "Ch2", Value = false },
+                //            new DiscreteData { Name = "Ch3", Value = true  },
+                //            new DiscreteData { Name = "Ch4", Value = false },
+                //            new DiscreteData { Name = "Ch5", Value = false }
+                //        },
+                //    CoilData = new List<CoilData> {
+                //            new CoilData { Name = "Ch1", Value = true  },
+                //            new CoilData { Name = "Ch2", Value = false },
+                //            new CoilData { Name = "Ch3", Value = true  },
+                //            new CoilData { Name = "Ch4", Value = false },
+                //            new CoilData { Name = "Ch5", Value = false }
+                //        }
+                //};
+                var dev = Builders<Device>.Filter.Eq(d => d.Id, device.DataReference);
+                var pushDef = Builders<Device>.Update.Push(d => d.DeviceData, deviceData);
+                var addNew = await mDevices.UpdateOneAsync(dev, pushDef);
+                Console.WriteLine("Should be updated");
 
             } else {
-                Console.WriteLine("Error: Could not find monitoring box");
+                Console.WriteLine("Error: Could not find device");
+            }
+        }
+
+        static async Task CreateCollectionFromModel() {
+            using var context = new FacilityContext();
+            var device = await context.ModbusDevices.FirstOrDefaultAsync(e => e.Id == 1);
+            if (device != null) {
+                var client = new MongoClient("mongodb://172.20.3.30");
+                var database = client.GetDatabase("monitoring");
+                Device dev = new Device();
+                dev.DeviceName = device.Identifier != null ? device.Identifier : "Not Set";
+                var mDevices = database.GetCollection<Device>("data");
+                dev.Id = new BsonObjectId(ObjectId.GenerateNewId()).ToString();
+                device.DataReference = dev.Id;
+                await mDevices.InsertOneAsync(dev);
+                context.Update(device);
+                await context.SaveChangesAsync();
+                Console.WriteLine("Device should be created.  id: {0}",dev.Id);
+            } else {
+                Console.WriteLine("Error: Could not find device");
+            }
+        }
+
+        static async Task FindCollectionFromModel() {
+            using var context = new FacilityContext();
+            var device = await context.ModbusDevices.FirstOrDefaultAsync(e => e.Id == 1);
+            if (device != null) {
+                var client = new MongoClient("mongodb://172.20.3.30");
+                var database = client.GetDatabase("monitoring");
+                var mDevices = database.GetCollection<Device>("data");
+                var dev = await mDevices.Find(e => e.Id == device.DataReference).FirstOrDefaultAsync();
+                if (dev != null) {
+                    Console.WriteLine("Device Found: id {0}",dev.Id);
+                } else {
+                    Console.WriteLine("Error: Could not find device with id {0}",device.DataReference);
+                }
+            } else {
+                Console.WriteLine("Error: Could not find device");
             }
         }
 
@@ -537,7 +650,6 @@ namespace FacilityMonitoring.ConsoleTesting {
             }
             return virtualInputs;
         }
-
         static VirtualInput CreateVirtualChannel(JToken token,ModbusDevice modbusDevice, IList<FacilityAction> actions) {
             VirtualInput vInput = new VirtualInput();
             vInput.SystemChannel = token["Input"].Value<int>();

@@ -13,27 +13,20 @@ namespace FacilityMonitoring.Infrastructure.Data.MongoDB {
         [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; }
         public string DeviceName { get; set; }
-       // [BsonRepresentation(BsonType.Array)]
-        public IList<DeviceData> DeviceData { get; set; } 
+        // [BsonRepresentation(BsonType.Array)]
+        public IList<DeviceData> DeviceData { get; set; } = new List<DeviceData>();
     }
     public class DeviceData {
-
-        public DeviceData() {
-            this.CoilData = new List<CoilData>();
-            this.AnalogData = new List<AnalogData>();
-            this.DiscreteData = new List<DiscreteData>();
-        }
-
         public DateTime TimeStamp { get; set; }
 
         //[BsonRepresentation(BsonType.Array)]
-        public IList<AnalogData> AnalogData { get; set; }
+        public IList<AnalogData> AnalogData { get; set; } = new List<AnalogData>();
 
-       // [BsonRepresentation(BsonType.Array)]
-        public IList<DiscreteData> DiscreteData { get; set; }
+        // [BsonRepresentation(BsonType.Array)]
+        public IList<DiscreteData> DiscreteData { get; set; } = new List<DiscreteData>();
 
         //[BsonRepresentation(BsonType.Array)]
-        public IList<CoilData> CoilData { get; set; }
+        public IList<CoilData> CoilData { get; set; } = new List<CoilData>();
        
     }
 
