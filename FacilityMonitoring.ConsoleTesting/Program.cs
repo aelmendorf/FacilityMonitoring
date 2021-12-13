@@ -8,10 +8,22 @@ using Microsoft.EntityFrameworkCore;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using FacilityMonitoring.Infrastructure.Data.MongoDB;
+using FacilityMonitoring.Infrastructure.Services;
 
 namespace FacilityMonitoring.ConsoleTesting {
     public class Program {
         static async Task Main(string[] args) {
+            var context = new FacilityContext();
+            IFacilityRepository repo = new FacilityRepository(context);
+            IModbusService modbusService = new ModbusService();
+            IDataRecordService dataService = new DataRecordService("mongodb://172.20.3.30","monitoring","data");
+            IDeviceController controller = new DeviceController(modbusService, dataService, repo);
+            await controller.LoadDeviceAsync();
+            await controller.Read();
+            Console.WriteLine("Shoudl be done");
+        }
+
+        static async Task Testing() {
             //CreateModbusDevices();
             //await CreateOutputs();
             //await CreateFacilityActions();
@@ -25,28 +37,6 @@ namespace FacilityMonitoring.ConsoleTesting {
             //await CreateCollectionFromModel();
             //await FindCollectionFromModel();
             //await AppendMeasurment();
-            using var context = new FacilityContext();
-            var channels = await context.Channels.ToListAsync();
-            foreach(var ach in channels.OfType<AnalogInput>()) {
-                ach.Identifier = "Analog" + ach.SystemChannel;
-            }
-
-            foreach(var dch in channels.OfType<DiscreteInput>()) {
-                dch.Identifier = "Discrete" + dch.SystemChannel;
-            }
-
-            foreach(var vch in channels.OfType<VirtualInput>()) {
-                vch.Identifier = "Virtual" + vch.SystemChannel;
-            }
-
-            foreach (var och in channels.OfType<DiscreteOutput>()) {
-                och.Identifier = "Output" + och.SystemChannel;
-            }
-
-
-            context.UpdateRange(channels);
-            await context.SaveChangesAsync();
-            Console.WriteLine("Should be done");
         }
 
         static async Task AppendMeasurment() {
@@ -76,38 +66,24 @@ namespace FacilityMonitoring.ConsoleTesting {
 
                 foreach(var coil in device.Channels.OfType<VirtualInput>()) {
                     if (coil.Connected) {
-                        deviceData.CoilData.Add(new CoilData { Name = coil.Identifier, Value = true });
+                        deviceData.CoilData.Add(new VirtualData { Name = coil.Identifier, Value = true });
                     }
                 }
-                //var deviceData = new DeviceData() {
-                //    TimeStamp = DateTime.Now,
-                //    AnalogData = new List<AnalogData> {
-                //            new AnalogData { Name = "Ch1", Value = 45.6 },
-                //            new AnalogData { Name = "Ch2", Value = 87.4 },
-                //            new AnalogData { Name = "Ch3", Value = 45.6 },
-                //            new AnalogData { Name = "Ch4", Value = 12.3 },
-                //            new AnalogData { Name = "Ch5", Value = 20.78 }
-                //        },
-                //    DiscreteData = new List<DiscreteData> {
-                //            new DiscreteData { Name = "Ch1", Value = true  },
-                //            new DiscreteData { Name = "Ch2", Value = false },
-                //            new DiscreteData { Name = "Ch3", Value = true  },
-                //            new DiscreteData { Name = "Ch4", Value = false },
-                //            new DiscreteData { Name = "Ch5", Value = false }
-                //        },
-                //    CoilData = new List<CoilData> {
-                //            new CoilData { Name = "Ch1", Value = true  },
-                //            new CoilData { Name = "Ch2", Value = false },
-                //            new CoilData { Name = "Ch3", Value = true  },
-                //            new CoilData { Name = "Ch4", Value = false },
-                //            new CoilData { Name = "Ch5", Value = false }
-                //        }
-                //};
+
+                foreach(var output in device.Channels.OfType<DiscreteOutput>()) {
+                    if (output.Connected) {
+                        deviceData.OutputData.Add(new OutputData { Name = output.Identifier, Value = true });
+                    }
+                }
+
+                foreach(var action in context.FacilityActions.ToList()) {
+                    deviceData.ActionData.Add(new ActionData { Name = action.ActionName, Value = false });
+                }
+
                 var dev = Builders<Device>.Filter.Eq(d => d.Id, device.DataReference);
                 var pushDef = Builders<Device>.Update.Push(d => d.DeviceData, deviceData);
                 var addNew = await mDevices.UpdateOneAsync(dev, pushDef);
                 Console.WriteLine("Should be updated");
-
             } else {
                 Console.WriteLine("Error: Could not find device");
             }
@@ -201,12 +177,12 @@ namespace FacilityMonitoring.ConsoleTesting {
                     new DiscreteData { Name = "Ch4", Value = false },
                     new DiscreteData { Name = "Ch5", Value = false }
                 },
-                   CoilData = new List<CoilData> {
-                    new CoilData { Name = "Ch1", Value = true  },
-                    new CoilData { Name = "Ch2", Value = false },
-                    new CoilData { Name = "Ch3", Value = true  },
-                    new CoilData { Name = "Ch4", Value = false },
-                    new CoilData { Name = "Ch5", Value = false }
+                   CoilData = new List<VirtualData> {
+                    new VirtualData { Name = "Ch1", Value = true  },
+                    new VirtualData { Name = "Ch2", Value = false },
+                    new VirtualData { Name = "Ch3", Value = true  },
+                    new VirtualData { Name = "Ch4", Value = false },
+                    new VirtualData { Name = "Ch5", Value = false }
                 }
                },
                new DeviceData() {
@@ -225,12 +201,12 @@ namespace FacilityMonitoring.ConsoleTesting {
                     new DiscreteData { Name = "Ch4", Value = false },
                     new DiscreteData { Name = "Ch5", Value = false }
                 },
-                   CoilData = new List<CoilData> {
-                    new CoilData { Name = "Ch1", Value = true  },
-                    new CoilData { Name = "Ch2", Value = false },
-                    new CoilData { Name = "Ch3", Value = true  },
-                    new CoilData { Name = "Ch4", Value = false },
-                    new CoilData { Name = "Ch5", Value = false }
+                   CoilData = new List<VirtualData> {
+                    new VirtualData { Name = "Ch1", Value = true  },
+                    new VirtualData { Name = "Ch2", Value = false },
+                    new VirtualData { Name = "Ch3", Value = true  },
+                    new VirtualData { Name = "Ch4", Value = false },
+                    new VirtualData { Name = "Ch5", Value = false }
                 }
                }
             };

@@ -4,6 +4,7 @@ using FacilityMonitoring.Infrastructure.Data.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FacilityMonitoring.Infrastructure.Migrations
 {
     [DbContext(typeof(FacilityContext))]
-    partial class FacilityContextModelSnapshot : ModelSnapshot
+    [Migration("20211213142419_AddRegisterType")]
+    partial class AddRegisterType
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -533,28 +535,6 @@ namespace FacilityMonitoring.Infrastructure.Migrations
 
             modelBuilder.Entity("FacilityMonitoring.Infrastructure.Data.Model.FacilityAction", b =>
                 {
-                    b.OwnsOne("FacilityMonitoring.Infrastructure.Data.Model.ModbusAddress", "ModbusAddress", b1 =>
-                        {
-                            b1.Property<int>("FacilityActionId")
-                                .HasColumnType("int");
-
-                            b1.Property<int>("Address")
-                                .HasColumnType("int");
-
-                            b1.Property<int>("RegisterLength")
-                                .HasColumnType("int");
-
-                            b1.Property<int>("RegisterType")
-                                .HasColumnType("int");
-
-                            b1.HasKey("FacilityActionId");
-
-                            b1.ToTable("FacilityActions");
-
-                            b1.WithOwner()
-                                .HasForeignKey("FacilityActionId");
-                        });
-
                     b.OwnsMany("FacilityMonitoring.Infrastructure.Data.Model.ActionOutput", "ActionOutputs", b1 =>
                         {
                             b1.Property<int>("Id")
@@ -594,8 +574,6 @@ namespace FacilityMonitoring.Infrastructure.Migrations
                         });
 
                     b.Navigation("ActionOutputs");
-
-                    b.Navigation("ModbusAddress");
                 });
 
             modelBuilder.Entity("FacilityMonitoring.Infrastructure.Data.Model.FacilityZone", b =>

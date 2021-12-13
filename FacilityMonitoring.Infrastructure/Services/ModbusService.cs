@@ -126,7 +126,7 @@ namespace FacilityMonitoring.Infrastructure.Services {
                 try {
                     using TcpClient client = new TcpClient(this.IpAddress, this.Port);
                     ModbusIpMaster master = ModbusIpMaster.CreateIp(client);
-                    var regData = master.ReadHoldingRegisters(this.SlaveAddress, (ushort)baseAddress, (ushort)length);
+                    var regData = master.ReadInputRegisters(this.SlaveAddress, (ushort)baseAddress, (ushort)length);
                     client.Close();
                     master.Dispose();
                     return regData;
@@ -143,7 +143,7 @@ namespace FacilityMonitoring.Infrastructure.Services {
                 try {
                     using TcpClient client = new TcpClient(this.IpAddress, this.Port);
                     ModbusIpMaster master = ModbusIpMaster.CreateIp(client);
-                    var regData = await master.ReadHoldingRegistersAsync(this.SlaveAddress, (ushort)baseAddress, (ushort)length);
+                    var regData = await master.ReadInputRegistersAsync(this.SlaveAddress, (ushort)baseAddress, (ushort)length);
                     client.Close();
                     master.Dispose();
                     return regData;

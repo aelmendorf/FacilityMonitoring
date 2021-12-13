@@ -1,7 +1,14 @@
 using FacilityMonitoring.Infrastructure.Services;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace FacilityMonitoring.DataLoggingService {
-    public class Worker : IHostedService, IDisposable {
+namespace FacilityMonitoring.DataService {
+    public class Worker : IHostedService,IDisposable {
         private readonly ILogger<Worker> _logger;
         private readonly IDeviceController _controller;
         private Timer _timer = null;
@@ -20,7 +27,6 @@ namespace FacilityMonitoring.DataLoggingService {
 
         private async void DataLogHandler(object state) {
             await this._controller.Read();
-            this._logger.LogInformation("Logged Data");
         }
 
         public Task StopAsync(CancellationToken cancellationToken) {
@@ -29,7 +35,7 @@ namespace FacilityMonitoring.DataLoggingService {
         }
 
         public void Dispose() {
-
+            throw new NotImplementedException();
         }
     }
 }

@@ -9,14 +9,19 @@ using Microsoft.EntityFrameworkCore;
 using FacilityMonitoring.Infrastructure.Data.MongoDB;
 
 namespace FacilityMonitoring.Infrastructure.Services {
-
     public interface IFacilityRepository {
-        Task<ModbusDevice?> GetDeviceAsync(string device_id);
+        Task<Alert?> GetAlertAsync(int id);
+        Task<IList<AnalogInput>> GetAnalogInputsAsync(string device_id);
         Task<IList<Channel>?> GetChannelsAsync(string device_id);
         Task<string?> GetDataReferenceAsync(string device_id);
+        Task<ModbusDevice?> GetDeviceAsync(string device_id);
+        Task<IList<DiscreteInput>> GetDiscreteInputsAsync(string device_id);
+        Task<IList<DiscreteOutput>> GetDiscreteOutputsAsync(string device_id);
+        Task<IList<FacilityAction>> GetFacilityActions();
+        Task<IList<VirtualInput>> GetVirtualInputsAsync(string device_id);
     }
 
-    public class FacilityRepository:IFacilityRepository {
+    public class FacilityRepository : IFacilityRepository {
         private readonly FacilityContext _context;
 
         public FacilityRepository(FacilityContext context) {
@@ -24,7 +29,53 @@ namespace FacilityMonitoring.Infrastructure.Services {
         }
 
         public async Task<IList<Channel>?> GetChannelsAsync(string device_id) {
-            return (await this._context.Channels.Include(e=>e.ModbusDevice).Where(e =>e.ModbusDevice.Identifier==device_id).ToListAsync());
+            return (await this._context.Channels.AsNoTracking()
+                .Include(e => e.ModbusDevice)
+                .Include(e => e.ModbusAddress)
+                .Where(e => e.ModbusDevice.Identifier == device_id)
+                .ToListAsync());
+        }
+
+        public async Task<IList<AnalogInput>> GetAnalogInputsAsync(string device_id) {
+            return await this._context.Channels.OfType<AnalogInput>()
+                .AsNoTracking()
+                .Include(e => e.AnalogAlerts)
+                .Include(e => e.ModbusAddress)
+                .Where(e => e.ModbusDevice.Identifier == device_id)
+                .OrderBy(e => e.SystemChannel)
+                .ToListAsync();
+        }
+
+        public async Task<IList<DiscreteInput>> GetDiscreteInputsAsync(string device_id) {
+            return await this._context.Channels.OfType<DiscreteInput>()
+                .AsNoTracking()
+                .Include(e => e.DiscreteAlert)
+                .Include(e => e.ModbusAddress)
+                .Where(e => e.ModbusDevice.Identifier == device_id && !(e is VirtualInput))
+                .OrderBy(e => e.SystemChannel)
+                .ToListAsync();
+        }
+
+        public async Task<IList<DiscreteOutput>> GetDiscreteOutputsAsync(string device_id) {
+            return await this._context.Channels.OfType<DiscreteOutput>()
+                .AsNoTracking()
+                .Include(e => e.ModbusAddress)
+                .Where(e => e.ModbusDevice.Identifier == device_id)
+                .OrderBy(e => e.SystemChannel)
+                .ToListAsync();
+        }
+
+        public async Task<IList<VirtualInput>> GetVirtualInputsAsync(string device_id ) {
+            return await this._context.Channels.OfType<VirtualInput>()
+                .AsNoTracking()
+                .Include(e => e.ModbusAddress)
+                .Where(e => e.ModbusDevice.Identifier == device_id)
+                .OrderBy(e=>e.SystemChannel)
+                .ToListAsync();
+        }
+
+        public async Task<Alert?> GetAlertAsync(int id) {
+            return await this._context.Alerts.FirstOrDefaultAsync(e => e.Id == id);
         }
 
         public async Task<string?> GetDataReferenceAsync(string device_id) {
@@ -37,7 +88,14 @@ namespace FacilityMonitoring.Infrastructure.Services {
         }
 
         public async Task<ModbusDevice?> GetDeviceAsync(string device_id) {
-            return await this._context.ModbusDevices.FirstOrDefaultAsync(e => e.Identifier == device_id);
+            return await this._context.ModbusDevices.AsNoTracking()
+                .Include(e => e.Channels)
+                    .ThenInclude(e => e.ModbusAddress)
+                .FirstOrDefaultAsync(e => e.Identifier == device_id);
+        }
+
+        public async Task<IList<FacilityAction>> GetFacilityActions() {
+            return await this._context.FacilityActions.AsNoTracking().ToListAsync();
         }
     }
 }

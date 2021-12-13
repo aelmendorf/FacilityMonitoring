@@ -4,12 +4,23 @@
     <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UserSecretsId>dotnet-FacilityMonitoring.DataLoggingService-8560F978-46D8-4667-B95D-6C8B668E41EF</UserSecretsId>
+    <UserSecretsId>dotnet-FacilityMonitoring.DataLoggingService-6A8DF46C-95C1-4BC3-87B9-E51B08C01E93</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.0" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.14.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FacilityMonitoring.Infrastructure\FacilityMonitoring.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="NModbus4">
+      <HintPath>..\Assembiles\NModbus4.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>

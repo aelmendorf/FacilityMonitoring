@@ -22,9 +22,9 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
     public class FacilityAction {
         public int Id { get; set; }
         public string? ActionName { get; set; }
+        public ModbusAddress? ModbusAddress { get; set; }
         public ActionType ActionType { get; set; }
         public ICollection<ActionOutput> ActionOutputs { get; set; } = new List<ActionOutput>();
         public ICollection<Alert> Alerts { get; set; } = new List<Alert>();
-
     }
 }

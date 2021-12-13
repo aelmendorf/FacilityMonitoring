@@ -5,6 +5,13 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
         High=1,Low=0
     }
 
+    public enum ModbusRegister {
+        DiscreteInput,
+        Input,
+        Holding,
+        Coil
+    }
+
     [Owned]
     public class ChannelAddress {
         public int Channel { get; set; }
@@ -15,6 +22,7 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
     public class ModbusAddress {
         public int Address { get; set; }
         public int RegisterLength { get; set; }
+        public ModbusRegister RegisterType { get; set; }
     }
 
     public abstract class Channel {

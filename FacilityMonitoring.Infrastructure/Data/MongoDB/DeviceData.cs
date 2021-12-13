@@ -26,21 +26,38 @@ namespace FacilityMonitoring.Infrastructure.Data.MongoDB {
         public IList<DiscreteData> DiscreteData { get; set; } = new List<DiscreteData>();
 
         //[BsonRepresentation(BsonType.Array)]
-        public IList<CoilData> CoilData { get; set; } = new List<CoilData>();
-       
+        public IList<VirtualData> CoilData { get; set; } = new List<VirtualData>();
+        public IList<OutputData> OutputData { get; set; } = new List<OutputData>();
+        public IList<ActionData> ActionData { get; set; } = new List<ActionData>();
     }
 
-    public class AnalogData {
+    public abstract class RegisterData {
         public string Name { get; set; }
+    }
+
+    public class AnalogData:RegisterData {
         public double Value { get; set; }
     }
 
-    public class DiscreteData {
-        public string Name { get; set; }
+    public class DiscreteData:RegisterData {
         public bool Value { get; set; }
     }
-    public class CoilData {
-        public string Name { get; set; }
+    public class VirtualData:RegisterData {
         public bool Value { get; set; }
     }
+
+    public class OutputData : RegisterData {
+        public bool Value { get; set; }
+    }
+
+    public class ActionData : RegisterData {
+        public bool Value { get; set; }
+    }
+
+    public class AlertData {
+        public string Channel { get; set; }
+        public string Type { get; set; }
+    }
+
+
 }

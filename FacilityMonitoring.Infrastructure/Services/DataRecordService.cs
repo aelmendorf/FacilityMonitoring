@@ -21,9 +21,15 @@ namespace FacilityMonitoring.Infrastructure.Services {
 
         public DataRecordService(IOptions<DatabaseSettings> settings) {
             this._settings = settings.Value;
-            var client = new MongoClient(this._settings.ConnectionString);
-            var database = client.GetDatabase(this._settings.DatabaseName);
-            this._devices = database.GetCollection<Device>(this._settings.CollectionName);
+            var client = new MongoClient("mongodb://172.20.3.30");
+            var database = client.GetDatabase("monitoring");
+            this._devices = database.GetCollection<Device>("data");
+        }
+
+        public DataRecordService(string conString,string db,string collection) {
+            var client = new MongoClient(conString);
+            var database = client.GetDatabase(db);
+            this._devices = database.GetCollection<Device>(collection);
         }
 
         public async Task<List<DeviceData>> GetAllDataAsync(string id) {
