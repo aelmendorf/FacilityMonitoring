@@ -1,6 +1,7 @@
 ﻿using FacilityMonitoring.Infrastructure.Data.MongoDB;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
+using MongoDB.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +21,7 @@ namespace FacilityMonitoring.Infrastructure.Services {
         private readonly DatabaseSettings _settings;
 
         public DataRecordService(IOptions<DatabaseSettings> settings) {
+
             this._settings = settings.Value;
             var client = new MongoClient("mongodb://172.20.3.30");
             var database = client.GetDatabase("monitoring");

@@ -6,7 +6,6 @@ WORKDIR /app
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
 COPY ["FacilityMonitoring.DataLoggingService/FacilityMonitoring.DataLoggingService.csproj", "FacilityMonitoring.DataLoggingService/"]
-COPY ["FacilityMonitoring.Infrastructure/FacilityMonitoring.Infrastructure.csproj", "FacilityMonitoring.Infrastructure/"]
 RUN dotnet restore "FacilityMonitoring.DataLoggingService/FacilityMonitoring.DataLoggingService.csproj"
 COPY . .
 WORKDIR "/src/FacilityMonitoring.DataLoggingService"

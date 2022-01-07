@@ -17,9 +17,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Assembiles\NModbus4.pdb = Assembiles\NModbus4.pdb
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FacilityMonitoring.DataService", "FacilityMonitoring.DataService\FacilityMonitoring.DataService.csproj", "{C9B7AC56-1C11-4836-9D2F-19FCB09FD77A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FacilityMonitoring.DataService", "FacilityMonitoring.DataService\FacilityMonitoring.DataService.csproj", "{C9B7AC56-1C11-4836-9D2F-19FCB09FD77A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FacilityMonitoring.DataLoggingService", "FacilityMonitoring.DataLoggingService\FacilityMonitoring.DataLoggingService.csproj", "{001CD3EE-3EEC-424E-A4F1-D28E047C11ED}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FacilityMonitoring.DataLoggingService", "FacilityMonitoring.DataLoggingService\FacilityMonitoring.DataLoggingService.csproj", "{001CD3EE-3EEC-424E-A4F1-D28E047C11ED}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

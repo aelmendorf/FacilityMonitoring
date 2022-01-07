@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  facilitymonitoring.dataloggingservice:
+    image: ${DOCKER_REGISTRY-}facilitymonitoringdataloggingservice
+    build:
+      context: .
+      dockerfile: FacilityMonitoring.DataLoggingService/Dockerfile
