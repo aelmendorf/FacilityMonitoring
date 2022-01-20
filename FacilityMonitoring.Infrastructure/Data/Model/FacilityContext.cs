@@ -43,6 +43,9 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
                 .OwnsOne(p => p.NetworkConfiguration)
                 .OwnsOne(p => p.ModbusConfig);
 
+            builder.Entity<ModbusDevice>()
+                .OwnsOne(p => p.ModbusIndexes);
+
             builder.Entity<FacilityAction>()
                 .Property(e => e.Id)
                 .ValueGeneratedNever();

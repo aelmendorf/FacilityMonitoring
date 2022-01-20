@@ -1,0 +1,17 @@
+# tye application configuration file
+# read all about it at https://github.com/dotnet/tye
+#
+# when you've given us a try, we'd love to know what you think:
+#    https://aka.ms/AA7q20u
+#
+name: facilitymonitoring
+services:
+- name: facilitymonitoring-consoletesting
+  project: FacilityMonitoring.ConsoleTesting/FacilityMonitoring.ConsoleTesting.csproj
+- name: facilitymonitoring-dataservice
+  project: FacilityMonitoring.DataService/FacilityMonitoring.DataService.csproj
+- name: facilitymonitoring-dataloggingservice
+  project: FacilityMonitoring.DataLoggingService/FacilityMonitoring.DataLoggingService.csproj
+  buildProperties:
+  - name: TargetFramework
+    value: netcoreapp6

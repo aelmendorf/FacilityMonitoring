@@ -13,57 +13,47 @@ namespace FacilityMonitoring.Infrastructure.Data.MongoDB {
             this.InitOneToMany(() => DeviceData);
         }
     }
+
     public class DeviceData:Entity {
-        public DateTime TimeStamp { get; set; }
         public One<Device> Device { get; set; }
-        public Many<AnalogData> AnalogData { get; set; }
-        public Many<DiscreteData> DiscreteData { get; set; } 
-        public Many<VirtualData> CoilData { get; set; } 
-        public Many<OutputData> OutputData { get; set; } 
-        public Many<ActionData> ActionData { get; set; } 
-        
-        public DeviceData() {
-            this.InitOneToMany(() => AnalogData);
-            this.InitOneToMany(() => DiscreteData);
-            this.InitOneToMany(() => CoilData);
-            this.InitOneToMany(() => OutputData);
-            this.InitOneToMany(() => ActionData);
-        }
-
+        public DateTime TimeStamp { get; set; }
+        public One<AnalogData> AnalogData { get; set; }
+        public One<DiscreteData> DiscreteData { get; set; }
+        public One<VirtualData> VirtualData { get; set; }
+        public One<OutputData> OutputData { get; set; }
+        public One<AlertData> AlertData { get; set; }
     }
-
-    public abstract class RegisterData:Entity {
+    public class AnalogData:Entity {
+        public List<AnalogReading> Readings { get; set; }
+    }
+    public class DiscreteData : Entity {
+        public List<DiscreteReading> Readings { get; set; }
+    }
+    public class VirtualData : Entity {
+        public List<VirtualReading> Readings { get; set; }
+    }
+    public class AlertData : Entity {
+        public List<AlertReading> Readings { get; set; }
+    }
+    public class OutputData : Entity {
+        public List<OutputReading> Readings { get; set; }
+    }
+    public abstract class RegisterData {
         public string Name { get; set; }
     }
-
-    public class AnalogData:RegisterData {
+    public class AnalogReading : RegisterData {
         public double Value { get; set; }
-        public One<DeviceData> DeviceData { get; set; }
     }
-
-    public class DiscreteData:RegisterData {
+    public class DiscreteReading : RegisterData {
         public bool Value { get; set; }
-        public One<DeviceData> DeviceData { get; set; }
     }
-    public class VirtualData:RegisterData {
+    public class VirtualReading : RegisterData {
         public bool Value { get; set; }
-        public One<DeviceData> DeviceData { get; set; }
     }
-
-    public class OutputData : RegisterData {
+    public class OutputReading : RegisterData {
         public bool Value { get; set; }
-        public One<DeviceData> DeviceData { get; set; }
     }
-
-    public class ActionData : RegisterData {
-        public bool Value { get; set; }
-        public One<DeviceData> DeviceData { get; set; }
+    public class AlertReading : RegisterData {
+        public int Value { get; set; }
     }
-
-    public class AlertData {
-        public string Channel { get; set; }
-        public string Type { get; set; }
-    }
-
-
 }

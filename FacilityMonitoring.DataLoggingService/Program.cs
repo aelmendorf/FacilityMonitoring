@@ -3,6 +3,7 @@ using FacilityMonitoring.Infrastructure.Data.Model;
 using FacilityMonitoring.Infrastructure.Data.MongoDB;
 using FacilityMonitoring.Infrastructure.Services;
 using Microsoft.Extensions.DependencyInjection;
+using MongoDB.Entities;
 
 var builder = Host.CreateDefaultBuilder(args);
 
@@ -24,6 +25,11 @@ builder.ConfigureAppConfiguration((hostContext, configuration) => {
 
 builder.ConfigureServices((hostContext,services) => {
     services.Configure<DatabaseSettings>(hostContext.Configuration.GetSection(nameof(DatabaseSettings)));
+    Task.Run(async () => {
+        await DB.InitAsync("wrapper", "172.20.3.30", 27017);
+    }).GetAwaiter().GetResult();
+
+    services.AddSingleton<IDataRecordService>(new DataRecordService());
     services.AddHostedService<Worker>();
     services.AddDbContext<FacilityContext>();
     services.AddTransient<IFacilityRepository, FacilityRepository>();

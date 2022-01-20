@@ -10,180 +10,110 @@ using Modbus.Device;
 namespace FacilityMonitoring.Infrastructure.Services {
 
     public interface IModbusService {
-        string IpAddress { get; set; }
-        int Port { get; set; }
-        byte SlaveAddress { get; set; }
+        bool Connect(string Ip, int port);
+        void Disconnect();
 
-        ushort[]? ReadInputRegisters(int baseAddress,int length);
-        ushort[]? ReadHoldingRegisters(int baseAddress, int length);
-        bool[]? ReadDiscreteInputs(int baseAddress, int length);
-        bool[]? ReadCoils(int baseAddress,int length);
+        ushort[]? ReadInputRegisters(int slaveId,int baseAddress,int length);
+        ushort[]? ReadHoldingRegisters(int slaveId, int baseAddress, int length);
+        bool[]? ReadDiscreteInputs(int slaveId, int baseAddress, int length);
+        bool[]? ReadCoils(int slaveId, int baseAddress,int length);
 
-        Task<ushort[]?> ReadInputRegistersAsync(int baseAddress, int length);
-        Task<ushort[]?> ReadHoldingRegistersAsync(int baseAddress, int length);
-        Task<bool[]?> ReadDiscreteInputsAsync(int baseAddress, int length);
-        Task<bool[]?> ReadCoilsAsync(int baseAddress, int length);
+        Task<ushort[]?> ReadInputRegistersAsync(int slaveId, int baseAddress, int length);
+        Task<ushort[]?> ReadHoldingRegistersAsync(int slaveId, int baseAddress, int length);
+        Task<bool[]?> ReadDiscreteInputsAsync(int slaveId, int baseAddress, int length);
+        Task<bool[]?> ReadCoilsAsync(int slaveId,int baseAddress, int length);
 
     }
 
     public class ModbusService : IModbusService {
-        public string IpAddress { get; set; }
-        public int Port { get; set; }
-        public byte SlaveAddress { get; set; }
+
+        private TcpClient client;
+        private ModbusIpMaster modbus;
+        private bool connected;
 
         public ModbusService() {
-            this.IpAddress = "";
-            this.Port = 0;
-            this.SlaveAddress = 0;
+            this.connected = false;
         }
 
-        private bool CheckConnection() {
+        public bool Connect(string Ip,int port) {
             try {
-                Ping check = new Ping();
-                PingReply reply = check.Send(this.IpAddress, 1000);
-                return reply.Status == IPStatus.Success;
+                this.client = new TcpClient(Ip,port);
+                this.modbus = ModbusIpMaster.CreateIp(client);
+                return true;
             } catch {
                 return false;
             }
         }
 
-        public ModbusService(string ip,int port,byte slaveAddr) {
-            this.IpAddress = ip;
-            this.Port = port;
-            this.SlaveAddress = slaveAddr;
+        public void Disconnect() {
+            if(this.client!=null && this.modbus != null) {
+                if (this.client.Connected) {
+                    this.client.Close();
+                    this.modbus.Dispose();
+                }
+            }
+
         }
 
-        public bool[]? ReadCoils(int baseAddress, int length) {
-            if (this.CheckConnection()) {
-                try {
-                    using TcpClient client = new TcpClient(this.IpAddress, this.Port);
-                    ModbusIpMaster master = ModbusIpMaster.CreateIp(client);
-                    var regData = master.ReadCoils(this.SlaveAddress, (ushort)baseAddress, (ushort)length);
-                    client.Close();
-                    master.Dispose();
-                    return regData;
-                } catch {
-                    return null;
-                }
+        public bool[]? ReadCoils(int slaveId,int baseAddress, int length) {
+            if (this.connected) {
+                return this.modbus.ReadCoils((byte)slaveId, (ushort)baseAddress, (ushort)length);
             } else {
                 return null;
             }
         }
 
-        public async Task<bool[]?> ReadCoilsAsync(int baseAddress, int length) {
-            if (this.CheckConnection()) {
-                try {
-                    using TcpClient client = new TcpClient(this.IpAddress, this.Port);
-                    ModbusIpMaster master = ModbusIpMaster.CreateIp(client);
-                    var regData = await master.ReadCoilsAsync(this.SlaveAddress, (ushort)baseAddress, (ushort)length);
-                    client.Close();
-                    master.Dispose();
-                    return regData;
-                } catch {
-                    return null;
-                }
+        public async Task<bool[]?> ReadCoilsAsync(int slaveId,int baseAddress, int length) {
+            if (this.connected) {
+                return await this.modbus.ReadCoilsAsync((byte)slaveId, (ushort)baseAddress, (ushort)length);
             } else {
                 return null;
             }
         }
 
-        public bool[]? ReadDiscreteInputs(int baseAddress, int length) {
-            if (this.CheckConnection()) {
-                try {
-                    using TcpClient client = new TcpClient(this.IpAddress, this.Port);
-                    ModbusIpMaster master = ModbusIpMaster.CreateIp(client);
-                    var regData = master.ReadInputs(this.SlaveAddress, (ushort)baseAddress, (ushort)length);
-                    client.Close();
-                    master.Dispose();
-                    return regData;
-                } catch {
-                    return null;
-                }
+        public bool[]? ReadDiscreteInputs(int slaveId,int baseAddress, int length) {
+            if (this.connected) {
+                return this.modbus.ReadInputs((byte)slaveId, (ushort)baseAddress, (ushort)length);
             } else {
                 return null;
             }
         }
 
-        public async Task<bool[]?> ReadDiscreteInputsAsync(int baseAddress, int length) {
-            if (this.CheckConnection()) {
-                try {
-                    using TcpClient client = new TcpClient(this.IpAddress, this.Port);
-                    ModbusIpMaster master = ModbusIpMaster.CreateIp(client);
-                    var regData = await master.ReadInputsAsync(this.SlaveAddress, (ushort)baseAddress, (ushort)length);
-                    client.Close();
-                    master.Dispose();
-                    return regData;
-                } catch {
-                    return null;
-                }
+        public async Task<bool[]?> ReadDiscreteInputsAsync(int slaveId,int baseAddress, int length) {
+            if (this.connected) {
+                return await this.modbus.ReadInputsAsync((byte)slaveId, (ushort)baseAddress, (ushort)length);
             } else {
                 return null;
             }
         }
 
-        public ushort[]? ReadHoldingRegisters(int baseAddress, int length) {
-            if (this.CheckConnection()) {
-                try {
-                    using TcpClient client = new TcpClient(this.IpAddress, this.Port);
-                    ModbusIpMaster master = ModbusIpMaster.CreateIp(client);
-                    var regData = master.ReadInputRegisters(this.SlaveAddress, (ushort)baseAddress, (ushort)length);
-                    client.Close();
-                    master.Dispose();
-                    return regData;
-                } catch {
-                    return null;
-                }
+        public ushort[]? ReadHoldingRegisters(int slaveId,int baseAddress, int length) {
+            if (this.connected) {
+                return this.modbus.ReadInputRegisters((byte)slaveId, (ushort)baseAddress, (ushort)length);
             } else {
                 return null;
             }
         }
 
-        public async Task<ushort[]?> ReadHoldingRegistersAsync(int baseAddress, int length) {
-            if (this.CheckConnection()) {
-                try {
-                    using TcpClient client = new TcpClient(this.IpAddress, this.Port);
-                    ModbusIpMaster master = ModbusIpMaster.CreateIp(client);
-                    var regData = await master.ReadInputRegistersAsync(this.SlaveAddress, (ushort)baseAddress, (ushort)length);
-                    client.Close();
-                    master.Dispose();
-                    return regData;
-                } catch {
-                    return null;
-                }
+        public async Task<ushort[]?> ReadHoldingRegistersAsync(int slaveId,int baseAddress, int length) {
+            if (this.connected) {
+                return await this.modbus.ReadInputRegistersAsync((byte)slaveId, (ushort)baseAddress, (ushort)length);
             } else {
                 return null;
             }
         }
 
-        public ushort[]? ReadInputRegisters(int baseAddress, int length) {
-            if (this.CheckConnection()) {
-                try {
-                    using TcpClient client = new TcpClient(this.IpAddress, this.Port);
-                    ModbusIpMaster master = ModbusIpMaster.CreateIp(client);
-                    var regData = master.ReadInputRegisters(this.SlaveAddress, (ushort)baseAddress, (ushort)length);
-                    client.Close();
-                    master.Dispose();
-                    return regData;
-                } catch {
-                    return null;
-                }
+        public ushort[]? ReadInputRegisters(int slaveId,int baseAddress, int length) {
+            if (this.connected) {
+                return this.modbus.ReadInputRegisters((byte)slaveId, (ushort)baseAddress, (ushort)length);
             } else {
                 return null;
             }
         }
 
-        public async Task<ushort[]?> ReadInputRegistersAsync(int baseAddress, int length) {
-            if (this.CheckConnection()) {
-                try {
-                    using TcpClient client = new TcpClient(this.IpAddress, this.Port);
-                    ModbusIpMaster master = ModbusIpMaster.CreateIp(client);
-                    var regData = await master.ReadInputRegistersAsync(this.SlaveAddress, (ushort)baseAddress, (ushort)length);
-                    client.Close();
-                    master.Dispose();
-                    return regData;
-                } catch {
-                    return null;
-                }
+        public async Task<ushort[]?> ReadInputRegistersAsync(int slaveId, int baseAddress, int length) {
+            if (this.connected) {
+                return await this.modbus.ReadInputRegistersAsync((byte)slaveId, (ushort)baseAddress, (ushort)length);
             } else {
                 return null;
             }

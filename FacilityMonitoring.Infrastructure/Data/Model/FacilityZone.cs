@@ -22,12 +22,12 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
 
     public class FacilityZone {
         public int Id { get; set; }
-        public string? ZoneName { get; set; }
-        public Location? Location { get; set; }
-        public ZoneSize? ZoneSize { get; set; }
+        public string ZoneName { get; set; }
+        public Location Location { get; set; }
+        public ZoneSize ZoneSize { get; set; }
         public AlertColor Color { get; set; }
         public int ZoneParentId { get; set; }
-        public FacilityZone? ZoneParent { get; set; }
+        public FacilityZone ZoneParent { get; set; }
         public ICollection<FacilityZone> SubZones { get; set; } = new List<FacilityZone>();
         public ICollection<Channel> Channels { get; set; } = new List<Channel>();
         public ICollection<ModbusDevice> ModbusDevices { get; set; } = new List<ModbusDevice>();

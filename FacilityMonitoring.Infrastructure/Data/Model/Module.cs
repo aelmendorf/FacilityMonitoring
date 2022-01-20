@@ -14,7 +14,7 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
 
     public class Module {
         public int Id { get; set; }
-        public string? Name { get; set; }
+        public string Name { get; set; }
         public int Slot { get; set; }
         public int ChannelCount { get; set; }
         public ModuleChannel ModuleChannel { get; set; }

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using FacilityMonitoring.Infrastructure.Data.Model;
 using Microsoft.EntityFrameworkCore;
 using FacilityMonitoring.Infrastructure.Data.MongoDB;
+using System.Linq.Expressions;
 
 namespace FacilityMonitoring.Infrastructure.Services {
     public interface IFacilityRepository {
@@ -19,6 +20,7 @@ namespace FacilityMonitoring.Infrastructure.Services {
         Task<IList<DiscreteOutput>> GetDiscreteOutputsAsync(string device_id);
         Task<IList<FacilityAction>> GetFacilityActions();
         Task<IList<VirtualInput>> GetVirtualInputsAsync(string device_id);
+        Task<IList<string?>> GetHeaders<T>() where T : Channel;
     }
 
     public class FacilityRepository : IFacilityRepository {
@@ -96,6 +98,15 @@ namespace FacilityMonitoring.Infrastructure.Services {
 
         public async Task<IList<FacilityAction>> GetFacilityActions() {
             return await this._context.FacilityActions.AsNoTracking().ToListAsync();
+        }
+
+        public async Task<IList<string?>> GetAnalogHeaders<T>() where T:Channel {
+            return await this._context.Channels
+                    .AsNoTracking()
+                    .OfType<T>()
+                    .OrderBy(e => e.SystemChannel)
+                    .Select(e=>e.Identifier)
+                    .ToListAsync();
         }
     }
 }

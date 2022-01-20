@@ -9,6 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FacilityMonitoring.ConsoleT
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C22E848C-6A07-4566-845D-298A4DE9B767}"
 	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
 		Assembiles\Microsoft.Exchange.WebServices.NETStandard.deps.json = Assembiles\Microsoft.Exchange.WebServices.NETStandard.deps.json
 		Assembiles\Microsoft.Exchange.WebServices.NETStandard.dll = Assembiles\Microsoft.Exchange.WebServices.NETStandard.dll
 		Assembiles\Microsoft.Exchange.WebServices.NETStandard.pdb = Assembiles\Microsoft.Exchange.WebServices.NETStandard.pdb
@@ -20,6 +21,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FacilityMonitoring.DataService", "FacilityMonitoring.DataService\FacilityMonitoring.DataService.csproj", "{C9B7AC56-1C11-4836-9D2F-19FCB09FD77A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FacilityMonitoring.DataLoggingService", "FacilityMonitoring.DataLoggingService\FacilityMonitoring.DataLoggingService.csproj", "{001CD3EE-3EEC-424E-A4F1-D28E047C11ED}"
+EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{8E021957-6B7A-43A4-A6AB-F8A1BF165601}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -43,6 +46,10 @@ Global
 		{001CD3EE-3EEC-424E-A4F1-D28E047C11ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{001CD3EE-3EEC-424E-A4F1-D28E047C11ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{001CD3EE-3EEC-424E-A4F1-D28E047C11ED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8E021957-6B7A-43A4-A6AB-F8A1BF165601}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E021957-6B7A-43A4-A6AB-F8A1BF165601}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E021957-6B7A-43A4-A6AB-F8A1BF165601}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E021957-6B7A-43A4-A6AB-F8A1BF165601}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

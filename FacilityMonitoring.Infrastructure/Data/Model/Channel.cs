@@ -28,22 +28,26 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
     public abstract class Channel {
         public int Id { get; set; }
         public int SystemChannel { get; set; }
-        public string? Identifier { get; set; }
-        public string? DisplayName { get; set; }
-        public ModbusAddress? ModbusAddress { get; set; }
-        public ChannelAddress? ChannelAddress { get; set; }
-        public int ModbusDeviceId { get; set; }
-        public ModbusDevice? ModbusDevice { get; set; }
+        public string Identifier { get; set; }
+        public string DisplayName { get; set; }
         public bool Connected { get; set; }
+        public bool Bypass { get; set; }
+        public bool Display { get; set; }
+        public ModbusAddress ModbusAddress { get; set; }
+        public ChannelAddress ChannelAddress { get; set; }
+        public int ModbusDeviceId { get; set; }
+        public ModbusDevice ModbusDevice { get; set; }
         public ICollection<FacilityZone> Zones { get; set; } = new List<FacilityZone>();
 
     }
 
     public class DiscreteInput : Channel {
+        ModbusAddress AlertAddress { get; set; }
         public DiscreteAlert DiscreteAlert { get; set; }
     }
     
     public class AnalogInput : Channel {
+        ModbusAddress AlertAddress { get; set; }
         public int? SensorId { get; set; }
         public Sensor Sensor { get; set; }
         public ICollection<AnalogAlert> AnalogAlerts { get; set; } = new List<AnalogAlert>();

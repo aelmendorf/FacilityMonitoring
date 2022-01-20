@@ -18,6 +18,5 @@
         public DiscreteState TriggerOn { get; set; }
         public int? DiscreteInputId { get; set; }
         public DiscreteInput DiscreteInput { get; set; }
-
     }
 }
