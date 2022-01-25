@@ -4,6 +4,7 @@ using FacilityMonitoring.Infrastructure.Data.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FacilityMonitoring.Infrastructure.Migrations
 {
     [DbContext(typeof(FacilityContext))]
-    partial class FacilityContextModelSnapshot : ModelSnapshot
+    [Migration("20220124200235_AlertResetTimer")]
+    partial class AlertResetTimer
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -35,21 +37,6 @@ namespace FacilityMonitoring.Infrastructure.Migrations
                     b.HasIndex("ZonesId");
 
                     b.ToTable("ChannelZones", (string)null);
-                });
-
-            modelBuilder.Entity("DeviceFacilityZone", b =>
-                {
-                    b.Property<int>("DevicesId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ZonesId")
-                        .HasColumnType("int");
-
-                    b.HasKey("DevicesId", "ZonesId");
-
-                    b.HasIndex("ZonesId");
-
-                    b.ToTable("DeviceZones", (string)null);
                 });
 
             modelBuilder.Entity("FacilityMonitoring.Infrastructure.Data.Model.Alert", b =>
@@ -162,7 +149,7 @@ namespace FacilityMonitoring.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Devices");
+                    b.ToTable("Device");
 
                     b.HasDiscriminator<string>("Discriminator").HasValue("Device");
                 });
@@ -191,6 +178,12 @@ namespace FacilityMonitoring.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
+                    b.Property<int?>("ApiDeviceId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("BnetDeviceId")
+                        .HasColumnType("int");
+
                     b.Property<int>("Color")
                         .HasColumnType("int");
 
@@ -201,6 +194,10 @@ namespace FacilityMonitoring.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ApiDeviceId");
+
+                    b.HasIndex("BnetDeviceId");
 
                     b.HasIndex("ZoneParentId");
 
@@ -364,6 +361,21 @@ namespace FacilityMonitoring.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("FacilityZoneModbusDevice", b =>
+                {
+                    b.Property<int>("ModbusDevicesId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ZonesId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ModbusDevicesId", "ZonesId");
+
+                    b.HasIndex("ZonesId");
+
+                    b.ToTable("DeviceZones", (string)null);
+                });
+
             modelBuilder.Entity("ModuleMonitoringBox", b =>
                 {
                     b.Property<int>("ModulesId")
@@ -486,21 +498,6 @@ namespace FacilityMonitoring.Infrastructure.Migrations
                     b.HasOne("FacilityMonitoring.Infrastructure.Data.Model.Channel", null)
                         .WithMany()
                         .HasForeignKey("ChannelsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("FacilityMonitoring.Infrastructure.Data.Model.FacilityZone", null)
-                        .WithMany()
-                        .HasForeignKey("ZonesId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("DeviceFacilityZone", b =>
-                {
-                    b.HasOne("FacilityMonitoring.Infrastructure.Data.Model.Device", null)
-                        .WithMany()
-                        .HasForeignKey("DevicesId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -645,6 +642,14 @@ namespace FacilityMonitoring.Infrastructure.Migrations
 
             modelBuilder.Entity("FacilityMonitoring.Infrastructure.Data.Model.FacilityZone", b =>
                 {
+                    b.HasOne("FacilityMonitoring.Infrastructure.Data.Model.ApiDevice", null)
+                        .WithMany("Zones")
+                        .HasForeignKey("ApiDeviceId");
+
+                    b.HasOne("FacilityMonitoring.Infrastructure.Data.Model.BnetDevice", null)
+                        .WithMany("Zones")
+                        .HasForeignKey("BnetDeviceId");
+
                     b.HasOne("FacilityMonitoring.Infrastructure.Data.Model.FacilityZone", "ZoneParent")
                         .WithMany("SubZones")
                         .HasForeignKey("ZoneParentId")
@@ -693,6 +698,21 @@ namespace FacilityMonitoring.Infrastructure.Migrations
                     b.Navigation("ZoneParent");
 
                     b.Navigation("ZoneSize");
+                });
+
+            modelBuilder.Entity("FacilityZoneModbusDevice", b =>
+                {
+                    b.HasOne("FacilityMonitoring.Infrastructure.Data.Model.ModbusDevice", null)
+                        .WithMany()
+                        .HasForeignKey("ModbusDevicesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("FacilityMonitoring.Infrastructure.Data.Model.FacilityZone", null)
+                        .WithMany()
+                        .HasForeignKey("ZonesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("ModuleMonitoringBox", b =>
@@ -744,15 +764,6 @@ namespace FacilityMonitoring.Infrastructure.Migrations
                             b1.Property<int>("ModbusDeviceId")
                                 .HasColumnType("int");
 
-                            b1.Property<int>("ActionRegisterType")
-                                .HasColumnType("int");
-
-                            b1.Property<int>("ActionStart")
-                                .HasColumnType("int");
-
-                            b1.Property<int>("ActionStop")
-                                .HasColumnType("int");
-
                             b1.Property<int>("AlertRegisterType")
                                 .HasColumnType("int");
 
@@ -789,15 +800,6 @@ namespace FacilityMonitoring.Infrastructure.Migrations
                             b1.Property<int>("DiscreteStop")
                                 .HasColumnType("int");
 
-                            b1.Property<int>("OutputRegisterType")
-                                .HasColumnType("int");
-
-                            b1.Property<int>("OutputStart")
-                                .HasColumnType("int");
-
-                            b1.Property<int>("OutputStop")
-                                .HasColumnType("int");
-
                             b1.Property<int>("VirtualRegisterType")
                                 .HasColumnType("int");
 
@@ -809,7 +811,7 @@ namespace FacilityMonitoring.Infrastructure.Migrations
 
                             b1.HasKey("ModbusDeviceId");
 
-                            b1.ToTable("Devices");
+                            b1.ToTable("Device");
 
                             b1.WithOwner()
                                 .HasForeignKey("ModbusDeviceId");
@@ -831,7 +833,7 @@ namespace FacilityMonitoring.Infrastructure.Migrations
 
                             b1.HasKey("ModbusDeviceId");
 
-                            b1.ToTable("Devices");
+                            b1.ToTable("Device");
 
                             b1.WithOwner()
                                 .HasForeignKey("ModbusDeviceId");
@@ -862,7 +864,7 @@ namespace FacilityMonitoring.Infrastructure.Migrations
 
                             b1.HasKey("ModbusDeviceId");
 
-                            b1.ToTable("Devices");
+                            b1.ToTable("Device");
 
                             b1.WithOwner()
                                 .HasForeignKey("ModbusDeviceId");
@@ -886,7 +888,7 @@ namespace FacilityMonitoring.Infrastructure.Migrations
 
                                     b2.HasKey("NetworkConfigurationModbusDeviceId");
 
-                                    b2.ToTable("Devices");
+                                    b2.ToTable("Device");
 
                                     b2.WithOwner()
                                         .HasForeignKey("NetworkConfigurationModbusDeviceId");
@@ -920,6 +922,16 @@ namespace FacilityMonitoring.Infrastructure.Migrations
             modelBuilder.Entity("FacilityMonitoring.Infrastructure.Data.Model.AnalogInput", b =>
                 {
                     b.Navigation("AnalogAlerts");
+                });
+
+            modelBuilder.Entity("FacilityMonitoring.Infrastructure.Data.Model.ApiDevice", b =>
+                {
+                    b.Navigation("Zones");
+                });
+
+            modelBuilder.Entity("FacilityMonitoring.Infrastructure.Data.Model.BnetDevice", b =>
+                {
+                    b.Navigation("Zones");
                 });
 
             modelBuilder.Entity("FacilityMonitoring.Infrastructure.Data.Model.DiscreteInput", b =>

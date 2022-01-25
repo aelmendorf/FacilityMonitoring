@@ -4,6 +4,7 @@ using FacilityMonitoring.Infrastructure.Data.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FacilityMonitoring.Infrastructure.Migrations
 {
     [DbContext(typeof(FacilityContext))]
-    partial class FacilityContextModelSnapshot : ModelSnapshot
+    [Migration("20220125192659_ChannelMapping_AddOutputs")]
+    partial class ChannelMapping_AddOutputs
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -742,15 +744,6 @@ namespace FacilityMonitoring.Infrastructure.Migrations
                     b.OwnsOne("FacilityMonitoring.Infrastructure.Data.Model.ChannelRegisterMapping", "ChannelMapping", b1 =>
                         {
                             b1.Property<int>("ModbusDeviceId")
-                                .HasColumnType("int");
-
-                            b1.Property<int>("ActionRegisterType")
-                                .HasColumnType("int");
-
-                            b1.Property<int>("ActionStart")
-                                .HasColumnType("int");
-
-                            b1.Property<int>("ActionStop")
                                 .HasColumnType("int");
 
                             b1.Property<int>("AlertRegisterType")

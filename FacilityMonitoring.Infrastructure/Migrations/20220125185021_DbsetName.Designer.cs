@@ -4,6 +4,7 @@ using FacilityMonitoring.Infrastructure.Data.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FacilityMonitoring.Infrastructure.Migrations
 {
     [DbContext(typeof(FacilityContext))]
-    partial class FacilityContextModelSnapshot : ModelSnapshot
+    [Migration("20220125185021_DbsetName")]
+    partial class DbsetName
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -744,15 +746,6 @@ namespace FacilityMonitoring.Infrastructure.Migrations
                             b1.Property<int>("ModbusDeviceId")
                                 .HasColumnType("int");
 
-                            b1.Property<int>("ActionRegisterType")
-                                .HasColumnType("int");
-
-                            b1.Property<int>("ActionStart")
-                                .HasColumnType("int");
-
-                            b1.Property<int>("ActionStop")
-                                .HasColumnType("int");
-
                             b1.Property<int>("AlertRegisterType")
                                 .HasColumnType("int");
 
@@ -787,15 +780,6 @@ namespace FacilityMonitoring.Infrastructure.Migrations
                                 .HasColumnType("int");
 
                             b1.Property<int>("DiscreteStop")
-                                .HasColumnType("int");
-
-                            b1.Property<int>("OutputRegisterType")
-                                .HasColumnType("int");
-
-                            b1.Property<int>("OutputStart")
-                                .HasColumnType("int");
-
-                            b1.Property<int>("OutputStop")
                                 .HasColumnType("int");
 
                             b1.Property<int>("VirtualRegisterType")

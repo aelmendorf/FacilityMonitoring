@@ -30,7 +30,7 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
         public FacilityZone ZoneParent { get; set; }
         public ICollection<FacilityZone> SubZones { get; set; } = new List<FacilityZone>();
         public ICollection<Channel> Channels { get; set; } = new List<Channel>();
-        public ICollection<ModbusDevice> ModbusDevices { get; set; } = new List<ModbusDevice>();
+        public ICollection<Device> Devices { get; set; } = new List<Device>();
 
     }
 }

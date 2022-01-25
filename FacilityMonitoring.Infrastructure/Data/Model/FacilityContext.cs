@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Design;
 
 namespace FacilityMonitoring.Infrastructure.Data.Model {
     public class FacilityContext:DbContext {
-        public DbSet<ModbusDevice> ModbusDevices { get; set; }
+        public DbSet<Device> Devices { get; set; }
         public DbSet<Module> Modules { get; set; }
         public DbSet<Channel> Channels { get; set; }
         public DbSet<Sensor> Sensors { get; set; }
@@ -24,6 +24,9 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
 
         protected override void OnModelCreating(ModelBuilder builder) {
             //Modbus Device inheritance
+            builder.Entity<BnetDevice>().HasBaseType<Device>();
+            builder.Entity<ApiDevice>().HasBaseType<Device>();
+            builder.Entity<ModbusDevice>().HasBaseType<Device>();
             builder.Entity<MonitoringBox>().HasBaseType<ModbusDevice>();
             //Channel inheritance
             builder.Entity<DiscreteInput>().HasBaseType<Channel>();
@@ -44,7 +47,7 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
                 .OwnsOne(p => p.ModbusConfig);
 
             builder.Entity<ModbusDevice>()
-                .OwnsOne(p => p.ModbusIndexes);
+                .OwnsOne(p => p.ChannelMapping);
 
             builder.Entity<FacilityAction>()
                 .Property(e => e.Id)
@@ -111,9 +114,9 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
                 .HasForeignKey(e => e.FacilityActionId)
                 .IsRequired(false);
 
-            builder.Entity<ModbusDevice>()
+            builder.Entity<Device>()
                 .HasMany(p => p.Zones)
-                .WithMany(p => p.ModbusDevices)
+                .WithMany(p => p.Devices)
                 .UsingEntity(j => j.ToTable("DeviceZones"));
 
             builder.Entity<Channel>()

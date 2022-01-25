@@ -22,17 +22,41 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
         public ModbusConfig ModbusConfig { get; set; }
     }
 
-    public class ChannelRegisterMap {
-        public ModbusRegister RegisterType { get; set; }
-        public int Start { get; set; }
-        public int Stop { get; set; }
-    }
-
     public class ChannelRegisterMapping {
-        ChannelRegisterMap DiscreteRegisterMap { get; set; }
-        ChannelRegisterMap AnalogRegisterMap { get; set; }
-        ChannelRegisterMap AlertRegisterMap { get; set; }
-        ChannelRegisterMap VirtualRegisterMap { get; set; }
+
+        public ModbusRegister AlertRegisterType { get; set; }
+        public int AlertStart { get; set; }
+        public int AlertStop { get; set; }
+
+        public ModbusRegister AnalogRegisterType { get; set; }
+        public int AnalogStart { get; set; }
+        public int AnalogStop { get; set; }
+
+        public ModbusRegister DiscreteRegisterType { get; set; }
+        public int DiscreteStart { get; set; }
+        public int DiscreteStop { get; set; }
+
+        public ModbusRegister VirtualRegisterType { get; set; }
+        public int VirtualStart { get; set; }
+        public int VirtualStop { get; set; }
+
+        public ModbusRegister DeviceRegisterType { get; set; }
+        public int DeviceStart { get; set; }
+        public int DeviceStop { get; set; }
+
+        public ModbusRegister OutputRegisterType { get; set; }
+        public int OutputStart { get; set; }
+        public int OutputStop { get; set; }
+
+        public ModbusRegister ActionRegisterType { get; set; }
+        public int ActionStart { get; set; }
+        public int ActionStop { get; set; }
+
+        //public ChannelRegisterMap DiscreteRegisterMap { get; set; }
+        //public ChannelRegisterMap AnalogRegisterMap { get; set; }
+        //public ChannelRegisterMap AlertRegisterMap { get; set; }
+        //public ChannelRegisterMap VirtualRegisterMap { get; set; }
+        //public ChannelRegisterMap ModbusDeviceMap { get; set; }
     }
 
     public class ModbusDevice:Device {

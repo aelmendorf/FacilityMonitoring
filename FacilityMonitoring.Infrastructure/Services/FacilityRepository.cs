@@ -11,16 +11,16 @@ using System.Linq.Expressions;
 
 namespace FacilityMonitoring.Infrastructure.Services {
     public interface IFacilityRepository {
-        Task<Alert?> GetAlertAsync(int id);
+        Task<Alert> GetAlertAsync(int id);
         Task<IList<AnalogInput>> GetAnalogInputsAsync(string device_id);
-        Task<IList<Channel>?> GetChannelsAsync(string device_id);
-        Task<string?> GetDataReferenceAsync(string device_id);
-        Task<ModbusDevice?> GetDeviceAsync(string device_id);
+        Task<IList<Channel>> GetChannelsAsync(string device_id);
+        Task<string> GetDataReferenceAsync(string device_id);
+        Task<ModbusDevice> GetDeviceAsync(string device_id);
         Task<IList<DiscreteInput>> GetDiscreteInputsAsync(string device_id);
         Task<IList<DiscreteOutput>> GetDiscreteOutputsAsync(string device_id);
         Task<IList<FacilityAction>> GetFacilityActions();
         Task<IList<VirtualInput>> GetVirtualInputsAsync(string device_id);
-        Task<IList<string?>> GetHeaders<T>() where T : Channel;
+        Task<IList<string>> GetHeaders<T>() where T : Channel;
     }
 
     public class FacilityRepository : IFacilityRepository {
@@ -30,7 +30,7 @@ namespace FacilityMonitoring.Infrastructure.Services {
             this._context = context;
         }
 
-        public async Task<IList<Channel>?> GetChannelsAsync(string device_id) {
+        public async Task<IList<Channel>> GetChannelsAsync(string device_id) {
             return (await this._context.Channels.AsNoTracking()
                 .Include(e => e.ModbusDevice)
                 .Include(e => e.ModbusAddress)
@@ -76,11 +76,11 @@ namespace FacilityMonitoring.Infrastructure.Services {
                 .ToListAsync();
         }
 
-        public async Task<Alert?> GetAlertAsync(int id) {
+        public async Task<Alert> GetAlertAsync(int id) {
             return await this._context.Alerts.FirstOrDefaultAsync(e => e.Id == id);
         }
 
-        public async Task<string?> GetDataReferenceAsync(string device_id) {
+        public async Task<string> GetDataReferenceAsync(string device_id) {
             var device = await this.GetDeviceAsync(device_id);
             if (device != null) {
                 return device.DataReference;
@@ -89,24 +89,30 @@ namespace FacilityMonitoring.Infrastructure.Services {
             }
         }
 
-        public async Task<ModbusDevice?> GetDeviceAsync(string device_id) {
-            return await this._context.ModbusDevices.AsNoTracking()
+        public async Task<ModbusDevice> GetDeviceAsync(string device_id) {
+            return await this._context.Devices.OfType<ModbusDevice>().AsNoTracking()
                 .Include(e => e.Channels)
                     .ThenInclude(e => e.ModbusAddress)
                 .FirstOrDefaultAsync(e => e.Identifier == device_id);
         }
 
         public async Task<IList<FacilityAction>> GetFacilityActions() {
-            return await this._context.FacilityActions.AsNoTracking().ToListAsync();
+            return await this._context.FacilityActions
+                .AsNoTracking()
+                .ToListAsync();
         }
 
-        public async Task<IList<string?>> GetAnalogHeaders<T>() where T:Channel {
+        public async Task<IList<string>> GetAnalogHeaders<T>() where T:Channel {
             return await this._context.Channels
                     .AsNoTracking()
                     .OfType<T>()
                     .OrderBy(e => e.SystemChannel)
                     .Select(e=>e.Identifier)
                     .ToListAsync();
+        }
+
+        public Task<IList<string>> GetHeaders<T>() where T : Channel {
+            throw new NotImplementedException();
         }
     }
 }

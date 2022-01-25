@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace FacilityMonitoring.Infrastructure.Data.Model {
     public class ApiDevice:Device {
+        public string ApiToken { get; set; }
     }
 
     public class BnetDevice : Device {
