@@ -386,7 +386,7 @@ namespace FacilityMonitoring.ConsoleTesting {
             var vInputs = JArray.Parse(File.ReadAllText(@"C:\MonitorFiles\VIRTUAL.TXT"));
             IList<VirtualInput> virtualInputs = vInputs.Select(e => CreateVirtualChannel(e, modbusDevice, actions)).ToList();
             foreach (var input in virtualInputs) {
-                Console.WriteLine("VirtualInput: {0} ActionId: {1}", input.SystemChannel, input.DiscreteAlert.FacilityActionId);
+                Console.WriteLine("VirtualInput: {0} ActionId: {1}", input.SystemChannel, input.VirtualAlert.FacilityActionId);
             }
             return virtualInputs;
         }
@@ -402,14 +402,14 @@ namespace FacilityMonitoring.ConsoleTesting {
             vInput.Connected = token["Connected"].Value<bool>();
             vInput.ModbusDevice = modbusDevice;
             vInput.ModbusDeviceId = modbusDevice.Id;
-            vInput.DiscreteAlert = new DiscreteAlert();
-            vInput.DiscreteAlert.TriggerOn = token["Alert"]["TriggerOn"].Value<int>() == 1 ? DiscreteState.High : DiscreteState.Low;
+            vInput.VirtualAlert = new DiscreteAlert();
+            vInput.VirtualAlert.TriggerOn = token["Alert"]["TriggerOn"].Value<int>() == 1 ? DiscreteState.High : DiscreteState.Low;
             int actionId = token["Alert"]["Action"].Value<int>() + 1;
             if (actionId >= 1) {
-                vInput.DiscreteAlert.FacilityActionId = actionId;
+                vInput.VirtualAlert.FacilityActionId = actionId;
             }
-            vInput.DiscreteAlert.Bypass = token["Alert"]["Bypass"].Value<bool>();
-            vInput.DiscreteAlert.Enabled = token["Alert"]["Enabled"].Value<bool>();
+            vInput.VirtualAlert.Bypass = token["Alert"]["Bypass"].Value<bool>();
+            vInput.VirtualAlert.Enabled = token["Alert"]["Enabled"].Value<bool>();
             return vInput;
         }
         static ActionType ToActionType(int i) {

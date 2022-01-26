@@ -31,7 +31,7 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
             //Channel inheritance
             builder.Entity<DiscreteInput>().HasBaseType<Channel>();
             builder.Entity<AnalogInput>().HasBaseType<Channel>();
-            builder.Entity<VirtualInput>().HasBaseType<DiscreteInput>();
+            builder.Entity<VirtualInput>().HasBaseType<Channel>();
             //Alert inheritance
             builder.Entity<DiscreteAlert>().HasBaseType<Alert>();
             builder.Entity<AnalogAlert>().HasBaseType<Alert>();

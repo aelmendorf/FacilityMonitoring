@@ -1,6 +1,6 @@
 ﻿using System;
 using FacilityMonitoring.Infrastructure.Data.Model;
-
+using System.Net.Sockets;
 using System.Text.Json;
 using Newtonsoft.Json.Linq;
 using Microsoft.EntityFrameworkCore;
@@ -9,25 +9,131 @@ using MongoDB.Driver;
 using FacilityMonitoring.Infrastructure.Data.MongoDB;
 using FacilityMonitoring.Infrastructure.Services;
 using MongoDB.Entities;
+using Modbus.Device;
 
 namespace FacilityMonitoring.ConsoleTesting {
     public class Program {
         static async Task Main(string[] args) {
+            var context = new FacilityContext();
+            IModbusService modbusService = new ModbusService();
+            var dev = await context.Devices.OfType<MonitoringBox>()
+                .Include(e => e.Channels)
+                .Include(e => e.ChannelMapping)
+                .Include(e=>e.NetworkConfiguration.ModbusConfig)
+                .FirstOrDefaultAsync(e=>e.Identifier=="Epi2");
+            if (dev != null) {
+                var channelMapping = dev.ChannelMapping;
+                var modbusConfig = dev.NetworkConfiguration.ModbusConfig;
+
+                Console.WriteLine("IP: {0}  Port: {1}",dev.NetworkConfiguration.IPAddress,dev.NetworkConfiguration.Port);
+                modbusService.Connect(dev.NetworkConfiguration.IPAddress, dev.NetworkConfiguration.Port);
+                //try {
+                //    using var client = new TcpClient(dev.NetworkConfiguration.IPAddress, dev.NetworkConfiguration.Port);
+                //    using var modbus = ModbusIpMaster.CreateIp(client);
+
+
+                //} catch {
+
+                //}
+                var dInputs=await modbusService.ReadDiscreteInputsAsync(1, 0, modbusConfig.DiscreteInputs);
+                //var holding = await modbusService.ReadHoldingRegistersAsync(1, 0, modbusConfig.HoldingRegisters);
+                var holding = await modbusService.ReadHoldingRegistersAsync(1, 0, 50);
+                var inputs = await modbusService.ReadInputRegistersAsync(1, 0, modbusConfig.InputRegisters);
+                var coils = await modbusService.ReadCoilsAsync(1, 0, modbusConfig.Coils);
+
+                Console.WriteLine("Discrete Inputs: ");
+                for(int i = 0; i < dInputs.Length; i++) {
+                    Console.WriteLine("D[{0}]: {1}", i, dInputs[i]);
+                }
+
+                Console.WriteLine("Input Registers");
+                for (int i = 0; i < inputs.Length; i++) {
+                    Console.WriteLine("A[{0}]: {1}", i, inputs[i]);
+                }
+
+                Console.WriteLine(" Holding Registers: ");
+                for (int i = 0; i < holding.Length; i++) {
+                    Console.WriteLine("H[{0}]: {1}", i, holding[i]);
+                }
+
+                Console.WriteLine("Coils: ");
+                for (int i = 0; i < coils.Length; i++) {
+                    Console.WriteLine("C[{0}]: {1}", i, coils[i]);
+                }
+
+                modbusService.Disconnect();
+
+            } else {
+                Console.WriteLine("Error: Could not find device");
+            }
+            Console.ReadKey();
+        }
+
+        static async Task UpdateModbusAddress() {
             using var context = new FacilityContext();
-            var channels=await context.Channels
-                .Include(e=>e.ModbusDevice)
+            var channels = await context.Channels
+                .Include(e => e.ModbusDevice)
                 .Where(e => e.ModbusDevice.DisplayName == "EpiLab2")
                 .ToListAsync();
-            if (channels.Count>0) {
-                var analogInputs = channels.OfType<AnalogInput>().ToList();
-                var discreteInput = channels.OfType<DiscreteInput>().ToList();
-                var outputs = channels.OfType<DiscreteOutput>().ToList();
-                var vChannels = channels.OfType<VirtualInput>().ToList();
+            if (channels.Count > 0) {
+                var analogInputs = channels.OfType<AnalogInput>().OrderBy(e => e.SystemChannel).ToList();
+                var discreteInput = channels.OfType<DiscreteInput>().OrderBy(e => e.SystemChannel).ToList();
+                var outputs = channels.OfType<DiscreteOutput>().OrderBy(e => e.SystemChannel).ToList();
+                var vChannels = channels.OfType<VirtualInput>().OrderBy(e => e.SystemChannel).ToList();
 
-                analogInputs.ForEach(analog => { 
-                    analog.ModbusAddress.RegisterType = ModbusRegister.Input; 
-  
-                });
+
+                int alertCount = 0;
+                Console.WriteLine("DiscreteInput Count {0}", discreteInput.Count);
+                if (discreteInput.Count == 40) {
+                    for (int i = 0; i < 40; i++) {
+                        discreteInput[i].ModbusAddress.Address = i;
+                        discreteInput[i].ModbusAddress.RegisterType = ModbusRegister.DiscreteInput;
+
+                        ModbusAddress alertAddress = new ModbusAddress();
+                        alertAddress.Address = alertCount;
+                        alertAddress.RegisterType = ModbusRegister.Holding;
+                        alertAddress.RegisterLength = 0;
+
+                        discreteInput[i].AlertAddress = alertAddress;
+                        alertCount++;
+                    }
+                }
+
+                if (analogInputs.Count == 16) {
+                    for (int i = 0; i < 16; i++) {
+                        analogInputs[i].ModbusAddress.Address = i;
+                        analogInputs[i].ModbusAddress.RegisterType = ModbusRegister.Input;
+                        analogInputs[i].ModbusAddress.RegisterLength = 0;
+
+                        ModbusAddress alertAddress = new ModbusAddress();
+                        alertAddress.Address = alertCount;
+                        alertAddress.RegisterType = ModbusRegister.Holding;
+                        alertAddress.RegisterLength = 0;
+
+                        analogInputs[i].AlertAddress = alertAddress;
+                        alertCount++;
+                    }
+                }
+
+                if (outputs.Count == 8) {
+                    for (int i = 0; i < 8; i++) {
+                        outputs[i].ModbusAddress.Address = i + 40;
+                        outputs[i].ModbusAddress.RegisterType = ModbusRegister.Input;
+                    }
+                }
+
+                if (vChannels.Count == 4) {
+                    for (int i = 0; i < 4; i++) {
+                        vChannels[i].ModbusAddress.Address = i;
+                        vChannels[i].ModbusAddress.RegisterType = ModbusRegister.Coil;
+                    }
+                }
+
+                context.UpdateRange(analogInputs);
+                context.UpdateRange(discreteInput);
+                context.UpdateRange(outputs);
+                context.UpdateRange(vChannels);
+                var ret = await context.SaveChangesAsync();
 
                 if (ret > 0) {
                     Console.WriteLine("Success, data should be updated");

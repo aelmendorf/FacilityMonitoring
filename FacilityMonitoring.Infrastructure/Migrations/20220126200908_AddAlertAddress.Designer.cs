@@ -4,6 +4,7 @@ using FacilityMonitoring.Infrastructure.Data.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FacilityMonitoring.Infrastructure.Migrations
 {
     [DbContext(typeof(FacilityContext))]
-    partial class FacilityContextModelSnapshot : ModelSnapshot
+    [Migration("20220126200908_AddAlertAddress")]
+    partial class AddAlertAddress
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -467,23 +469,18 @@ namespace FacilityMonitoring.Infrastructure.Migrations
                     b.HasDiscriminator().HasValue("ModbusDevice");
                 });
 
-            modelBuilder.Entity("FacilityMonitoring.Infrastructure.Data.Model.VirtualInput", b =>
-                {
-                    b.HasBaseType("FacilityMonitoring.Infrastructure.Data.Model.Channel");
-
-                    b.Property<int?>("VirtualAlertId")
-                        .HasColumnType("int");
-
-                    b.HasIndex("VirtualAlertId");
-
-                    b.HasDiscriminator().HasValue("VirtualInput");
-                });
-
             modelBuilder.Entity("FacilityMonitoring.Infrastructure.Data.Model.MonitoringBox", b =>
                 {
                     b.HasBaseType("FacilityMonitoring.Infrastructure.Data.Model.ModbusDevice");
 
                     b.HasDiscriminator().HasValue("MonitoringBox");
+                });
+
+            modelBuilder.Entity("FacilityMonitoring.Infrastructure.Data.Model.VirtualInput", b =>
+                {
+                    b.HasBaseType("FacilityMonitoring.Infrastructure.Data.Model.DiscreteInput");
+
+                    b.HasDiscriminator().HasValue("VirtualInput");
                 });
 
             modelBuilder.Entity("ChannelFacilityZone", b =>
@@ -962,15 +959,6 @@ namespace FacilityMonitoring.Infrastructure.Migrations
                     b.Navigation("ModbusAddress");
 
                     b.Navigation("NetworkConfiguration");
-                });
-
-            modelBuilder.Entity("FacilityMonitoring.Infrastructure.Data.Model.VirtualInput", b =>
-                {
-                    b.HasOne("FacilityMonitoring.Infrastructure.Data.Model.DiscreteAlert", "VirtualAlert")
-                        .WithMany()
-                        .HasForeignKey("VirtualAlertId");
-
-                    b.Navigation("VirtualAlert");
                 });
 
             modelBuilder.Entity("FacilityMonitoring.Infrastructure.Data.Model.FacilityAction", b =>

@@ -38,16 +38,15 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
         public int ModbusDeviceId { get; set; }
         public ModbusDevice ModbusDevice { get; set; }
         public ICollection<FacilityZone> Zones { get; set; } = new List<FacilityZone>();
-
     }
 
     public class DiscreteInput : Channel {
-        ModbusAddress AlertAddress { get; set; }
+        public ModbusAddress AlertAddress { get; set; }
         public DiscreteAlert DiscreteAlert { get; set; }
     }
     
     public class AnalogInput : Channel {
-        ModbusAddress AlertAddress { get; set; }
+        public ModbusAddress AlertAddress { get; set; }
         public int? SensorId { get; set; }
         public Sensor Sensor { get; set; }
         public ICollection<AnalogAlert> AnalogAlerts { get; set; } = new List<AnalogAlert>();
@@ -58,7 +57,7 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
         public DiscreteState StartState { get; set; }
     }
 
-    public class VirtualInput : DiscreteInput {
-
+    public class VirtualInput : Channel {
+        public DiscreteAlert VirtualAlert { get; set; }
     }
 }
