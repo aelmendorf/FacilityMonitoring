@@ -51,10 +51,10 @@ namespace FacilityMonitoring.Infrastructure.Services {
                 return null;
             }
             if (this._modbusService.Connect(this._netConfig.IPAddress, this._netConfig.Port)) {
-                var rawAnalog = await this._modbusService.ReadHoldingRegistersAsync(this._netConfig.SlaveAddress,0,this._netConfig.ModbusConfig.HoldingRegisters);
-                var rawDiscrete = await this._modbusService.ReadDiscreteInputsAsync(this._netConfig.SlaveAddress,0,this._netConfig.ModbusConfig.DiscreteInputs);
-                var rawInput = await this._modbusService.ReadInputRegistersAsync(this._netConfig.SlaveAddress, 0, this._netConfig.ModbusConfig.InputRegisters);
-                var rawCoils = await this._modbusService.ReadCoilsAsync(this._netConfig.SlaveAddress,0, this._netConfig.ModbusConfig.Coils);
+                var rawAnalog = await this._modbusService.ReadHoldingRegistersAsync((byte)this._netConfig.SlaveAddress,0,(ushort)this._netConfig.ModbusConfig.HoldingRegisters);
+                var rawDiscrete = await this._modbusService.ReadDiscreteInputsAsync((byte)this._netConfig.SlaveAddress,0, (ushort)this._netConfig.ModbusConfig.DiscreteInputs);
+                var rawInput = await this._modbusService.ReadInputRegistersAsync((byte)this._netConfig.SlaveAddress, 0, (ushort)this._netConfig.ModbusConfig.InputRegisters);
+                var rawCoils = await this._modbusService.ReadCoilsAsync((byte)this._netConfig.SlaveAddress,0, (ushort)this._netConfig.ModbusConfig.Coils);
                 if (rawAnalog != null && rawDiscrete != null && rawCoils != null && rawInput!=null) {
                     DeviceData data = new DeviceData();
                     data.TimeStamp = DateTime.Now;

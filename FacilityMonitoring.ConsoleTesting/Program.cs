@@ -25,48 +25,126 @@ namespace FacilityMonitoring.ConsoleTesting {
                 var channelMapping = dev.ChannelMapping;
                 var modbusConfig = dev.NetworkConfiguration.ModbusConfig;
 
-                Console.WriteLine("IP: {0}  Port: {1}",dev.NetworkConfiguration.IPAddress,dev.NetworkConfiguration.Port);
-                modbusService.Connect(dev.NetworkConfiguration.IPAddress, dev.NetworkConfiguration.Port);
-                //try {
-                //    using var client = new TcpClient(dev.NetworkConfiguration.IPAddress, dev.NetworkConfiguration.Port);
-                //    using var modbus = ModbusIpMaster.CreateIp(client);
+                while (true) {
+                    bool exit = false;
+                    var key = DisplayMenu();
+                    var modbusResult = await modbusService.ReadAll(dev.NetworkConfiguration.IPAddress, dev.NetworkConfiguration.Port, 1, modbusConfig);
+                    switch (key) {
+                        case ConsoleKey.D1:
+                        case ConsoleKey.NumPad1: {
+                                ShowInputRegisters(modbusResult);
+                                break;
+                            }
 
+                        case ConsoleKey.D2:
+                        case ConsoleKey.NumPad2: {
+                                ShowCoils(modbusResult);
+                                break;
+                            }
 
-                //} catch {
+                        case ConsoleKey.D3:
+                        case ConsoleKey.NumPad3: {
+                                ShowInputs(modbusResult);
+                                break;
+                            }
 
-                //}
-                var dInputs=await modbusService.ReadDiscreteInputsAsync(1, 0, modbusConfig.DiscreteInputs);
-                //var holding = await modbusService.ReadHoldingRegistersAsync(1, 0, modbusConfig.HoldingRegisters);
-                var holding = await modbusService.ReadHoldingRegistersAsync(1, 0, 50);
-                var inputs = await modbusService.ReadInputRegistersAsync(1, 0, modbusConfig.InputRegisters);
-                var coils = await modbusService.ReadCoilsAsync(1, 0, modbusConfig.Coils);
+                        case ConsoleKey.D4:
+                        case ConsoleKey.NumPad4: {
+                                ShowHoldingRegisters(modbusResult);
+                                break;
+                            }
 
-                Console.WriteLine("Discrete Inputs: ");
-                for(int i = 0; i < dInputs.Length; i++) {
-                    Console.WriteLine("D[{0}]: {1}", i, dInputs[i]);
+                        case ConsoleKey.D5:
+                        case ConsoleKey.NumPad5: {
+                                ShowAll(modbusResult);
+                                break;
+                            }
+
+                        case ConsoleKey.Q: {
+                                exit = true;
+                                break;
+                            }
+
+                        default: {
+                                Console.WriteLine("Invalid Selection, Please Try Again");
+                                break;
+                            }
+                    }
+                    if (exit) {
+                        Console.WriteLine("Thank you Come Again!,press any key to exit");
+                        Console.ReadKey();
+                        break;
+                    }
                 }
-
-                Console.WriteLine("Input Registers");
-                for (int i = 0; i < inputs.Length; i++) {
-                    Console.WriteLine("A[{0}]: {1}", i, inputs[i]);
-                }
-
-                Console.WriteLine(" Holding Registers: ");
-                for (int i = 0; i < holding.Length; i++) {
-                    Console.WriteLine("H[{0}]: {1}", i, holding[i]);
-                }
-
-                Console.WriteLine("Coils: ");
-                for (int i = 0; i < coils.Length; i++) {
-                    Console.WriteLine("C[{0}]: {1}", i, coils[i]);
-                }
-
-                modbusService.Disconnect();
+                
 
             } else {
                 Console.WriteLine("Error: Could not find device");
             }
             Console.ReadKey();
+        }
+
+        private static ConsoleKey DisplayMenu() {
+            Console.WriteLine("Select a reading");
+            Console.WriteLine("1: Show Analog");
+            Console.WriteLine("2: Show Coils");
+            Console.WriteLine("3: Show Discrete");
+            Console.WriteLine("4: Show Holding");
+            Console.WriteLine("5: Show All");
+            Console.WriteLine("q: Exit");
+            var responce = Console.ReadKey();
+            Console.Clear();
+            return responce.Key;
+        }
+
+        private static void ShowAll(ModbusResult modbusResult) {
+            Console.WriteLine("Discrete Inputs: ");
+            for (int i = 0; i < modbusResult.DiscreteInputs.Length; i++) {
+                Console.WriteLine("D[{0}]: {1}", i, modbusResult.DiscreteInputs[i]);
+            }
+
+            Console.WriteLine("Input Registers");
+            for (int i = 0; i < modbusResult.InputRegisters.Length; i++) {
+                Console.WriteLine("A[{0}]: {1}", i, modbusResult.InputRegisters[i] / 10);
+            }
+
+            Console.WriteLine(" Holding Registers: ");
+            for (int i = 0; i < modbusResult.HoldingRegisters.Length; i++) {
+                Console.WriteLine("H[{0}]: {1}", i, modbusResult.HoldingRegisters[i]);
+            }
+
+            Console.WriteLine("Coils: ");
+            for (int i = 0; i < modbusResult.Coils.Length; i++) {
+                Console.WriteLine("C[{0}]: {1}", i, modbusResult.Coils[i]);
+            }
+        }
+
+        private static void ShowInputRegisters(ModbusResult modbusResult) {
+            Console.WriteLine("Input Registers");
+            for (int i = 0; i < modbusResult.InputRegisters.Length; i++) {
+                Console.WriteLine("A[{0}]: {1}", i, modbusResult.InputRegisters[i] / 10);
+            }
+        }
+
+        private static void ShowInputs(ModbusResult modbusResult) {
+            Console.WriteLine("Discrete Inputs: ");
+            for (int i = 0; i < modbusResult.DiscreteInputs.Length; i++) {
+                Console.WriteLine("D[{0}]: {1}", i, modbusResult.DiscreteInputs[i]);
+            }
+        }
+
+        private static void ShowCoils(ModbusResult modbusResult) {
+            Console.WriteLine("Coils: ");
+            for (int i = 0; i < modbusResult.Coils.Length; i++) {
+                Console.WriteLine("C[{0}]: {1}", i, modbusResult.Coils[i]);
+            }
+        }
+
+        private static void ShowHoldingRegisters(ModbusResult modbusResult) {
+            Console.WriteLine(" Holding Registers: ");
+            for (int i = 0; i < modbusResult.HoldingRegisters.Length; i++) {
+                Console.WriteLine("H[{0}]: {1}", i, modbusResult.HoldingRegisters[i]);
+            }
         }
 
         static async Task UpdateModbusAddress() {
