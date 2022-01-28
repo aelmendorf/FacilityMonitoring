@@ -6,10 +6,12 @@ using Microsoft.EntityFrameworkCore;
 namespace FacilityMonitoring.Infrastructure.Data.Model {
     public enum DeviceState { OKAY,WARNING,ALARM,MAINTENANCE }
     public class ModbusConfig {
+        public int SlaveAddress { get; set; }
         public int DiscreteInputs { get; set; }
         public int InputRegisters { get; set; }
         public int HoldingRegisters { get; set; }
         public int Coils { get; set; }
+
     }
 
     public class NetworkConfiguration {
@@ -18,7 +20,6 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
         public string MAC { get; set; }
         public string Gateway { get; set; }
         public int Port { get; set; }
-        public int SlaveAddress { get; set; }
         public ModbusConfig ModbusConfig { get; set; }
     }
 

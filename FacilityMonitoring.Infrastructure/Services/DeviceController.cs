@@ -46,30 +46,31 @@ namespace FacilityMonitoring.Infrastructure.Services {
             }
         }
 
-        public async Task<DeviceData?> Read() {
-            if (!this._dataLoaded) {
-                return null;
-            }
-            if (this._modbusService.Connect(this._netConfig.IPAddress, this._netConfig.Port)) {
-                var rawAnalog = await this._modbusService.ReadHoldingRegistersAsync((byte)this._netConfig.SlaveAddress,0,(ushort)this._netConfig.ModbusConfig.HoldingRegisters);
-                var rawDiscrete = await this._modbusService.ReadDiscreteInputsAsync((byte)this._netConfig.SlaveAddress,0, (ushort)this._netConfig.ModbusConfig.DiscreteInputs);
-                var rawInput = await this._modbusService.ReadInputRegistersAsync((byte)this._netConfig.SlaveAddress, 0, (ushort)this._netConfig.ModbusConfig.InputRegisters);
-                var rawCoils = await this._modbusService.ReadCoilsAsync((byte)this._netConfig.SlaveAddress,0, (ushort)this._netConfig.ModbusConfig.Coils);
-                if (rawAnalog != null && rawDiscrete != null && rawCoils != null && rawInput!=null) {
-                    DeviceData data = new DeviceData();
-                    data.TimeStamp = DateTime.Now;
-                    //var analogData = this.ParseAnalogData(rawAnalog);
-                    //var discrete = this.ParseDiscreteData(rawDiscrete);
-                    //var coilData = this.ParseVirtualData(rawCoils);
-                    this._modbusService.Disconnect();
-                    return data;
-                } else {
-                    this._modbusService.Disconnect();
-                    return null;
-                }
-            } else {
-                return null;
-            }
+        public async Task<DeviceData> Read() {
+            //if (!this._dataLoaded) {
+            //    return null;
+            //}
+            //if (this._modbusService.Connect(this._netConfig.IPAddress, this._netConfig.Port)) {
+            //    var rawAnalog = await this._modbusService.ReadHoldingRegistersAsync((byte)this._netConfig.SlaveAddress,0,(ushort)this._netConfig.ModbusConfig.HoldingRegisters);
+            //    var rawDiscrete = await this._modbusService.ReadDiscreteInputsAsync((byte)this._netConfig.SlaveAddress,0, (ushort)this._netConfig.ModbusConfig.DiscreteInputs);
+            //    var rawInput = await this._modbusService.ReadInputRegistersAsync((byte)this._netConfig.SlaveAddress, 0, (ushort)this._netConfig.ModbusConfig.InputRegisters);
+            //    var rawCoils = await this._modbusService.ReadCoilsAsync((byte)this._netConfig.SlaveAddress,0, (ushort)this._netConfig.ModbusConfig.Coils);
+            //    if (rawAnalog != null && rawDiscrete != null && rawCoils != null && rawInput!=null) {
+            //        DeviceData data = new DeviceData();
+            //        data.TimeStamp = DateTime.Now;
+            //        //var analogData = this.ParseAnalogData(rawAnalog);
+            //        //var discrete = this.ParseDiscreteData(rawDiscrete);
+            //        //var coilData = this.ParseVirtualData(rawCoils);
+            //        this._modbusService.Disconnect();
+            //        return data;
+            //    } else {
+            //        this._modbusService.Disconnect();
+            //        return null;
+            //    }
+            //} else {
+            //    return null;
+            //}
+            return null;
 
         }
 

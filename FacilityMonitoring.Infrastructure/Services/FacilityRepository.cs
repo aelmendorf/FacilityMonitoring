@@ -104,11 +104,11 @@ namespace FacilityMonitoring.Infrastructure.Services {
 
         public async Task<IList<string>> GetAnalogHeaders<T>() where T:Channel {
             return await this._context.Channels
-                    .AsNoTracking()
-                    .OfType<T>()
-                    .OrderBy(e => e.SystemChannel)
-                    .Select(e=>e.Identifier)
-                    .ToListAsync();
+                .AsNoTracking()
+                .OfType<T>()
+                .OrderBy(e => e.SystemChannel)
+                .Select(e=>e.Identifier)
+                .ToListAsync();
         }
 
         public Task<IList<string>> GetHeaders<T>() where T : Channel {

@@ -15,7 +15,7 @@ namespace FacilityMonitoring.ConsoleTesting {
     public class Program {
         static async Task Main(string[] args) {
             var context = new FacilityContext();
-            IModbusService modbusService = new ModbusService();
+            //IModbusService modbusService = new ModbusService();
             var dev = await context.Devices.OfType<MonitoringBox>()
                 .Include(e => e.Channels)
                 .Include(e => e.ChannelMapping)
@@ -28,56 +28,58 @@ namespace FacilityMonitoring.ConsoleTesting {
                 while (true) {
                     bool exit = false;
                     var key = DisplayMenu();
-                    var modbusResult = await modbusService.ReadAll(dev.NetworkConfiguration.IPAddress, dev.NetworkConfiguration.Port, 1, modbusConfig);
-                    switch (key) {
-                        case ConsoleKey.D1:
-                        case ConsoleKey.NumPad1: {
-                                ShowInputRegisters(modbusResult);
-                                break;
-                            }
+                    var modbusResult = await ModbusService.Read(dev.NetworkConfiguration.IPAddress, dev.NetworkConfiguration.Port, modbusConfig);
+                    if (modbusResult is null) {
+                        Console.WriteLine("Error: Failed to read modbus registers");
+                    } else {
+                        switch (key) {
+                            case ConsoleKey.D1:
+                            case ConsoleKey.NumPad1: {
+                                    ShowInputRegisters(modbusResult);
+                                    break;
+                                }
 
-                        case ConsoleKey.D2:
-                        case ConsoleKey.NumPad2: {
-                                ShowCoils(modbusResult);
-                                break;
-                            }
+                            case ConsoleKey.D2:
+                            case ConsoleKey.NumPad2: {
+                                    ShowCoils(modbusResult);
+                                    break;
+                                }
 
-                        case ConsoleKey.D3:
-                        case ConsoleKey.NumPad3: {
-                                ShowInputs(modbusResult);
-                                break;
-                            }
+                            case ConsoleKey.D3:
+                            case ConsoleKey.NumPad3: {
+                                    ShowInputs(modbusResult);
+                                    break;
+                                }
 
-                        case ConsoleKey.D4:
-                        case ConsoleKey.NumPad4: {
-                                ShowHoldingRegisters(modbusResult);
-                                break;
-                            }
+                            case ConsoleKey.D4:
+                            case ConsoleKey.NumPad4: {
+                                    ShowHoldingRegisters(modbusResult);
+                                    break;
+                                }
 
-                        case ConsoleKey.D5:
-                        case ConsoleKey.NumPad5: {
-                                ShowAll(modbusResult);
-                                break;
-                            }
+                            case ConsoleKey.D5:
+                            case ConsoleKey.NumPad5: {
+                                    ShowAll(modbusResult);
+                                    break;
+                                }
 
-                        case ConsoleKey.Q: {
-                                exit = true;
-                                break;
-                            }
+                            case ConsoleKey.Q: {
+                                    exit = true;
+                                    break;
+                                }
 
-                        default: {
-                                Console.WriteLine("Invalid Selection, Please Try Again");
-                                break;
-                            }
-                    }
-                    if (exit) {
-                        Console.WriteLine("Thank you Come Again!,press any key to exit");
-                        Console.ReadKey();
-                        break;
+                            default: {
+                                    Console.WriteLine("Invalid Selection, Please Try Again");
+                                    break;
+                                }
+                        }
+                        if (exit) {
+                            Console.WriteLine("Thank you Come Again!,press any key to exit");
+                            Console.ReadKey();
+                            break;
+                        }
                     }
                 }
-                
-
             } else {
                 Console.WriteLine("Error: Could not find device");
             }
@@ -289,28 +291,28 @@ namespace FacilityMonitoring.ConsoleTesting {
         }
 
         static async Task Test() {
-            var context = new FacilityContext();
-            await DB.InitAsync("wrapper", "172.20.3.30", 27017);
+            //var context = new FacilityContext();
+            //await DB.InitAsync("wrapper", "172.20.3.30", 27017);
 
-            IFacilityRepository repo = new FacilityRepository(context);
-            IModbusService modbusService = new ModbusService();
+            //IFacilityRepository repo = new FacilityRepository(context);
+            //IModbusService modbusService = new ModbusService();
 
-            IDataRecordService dataService = new DataRecordService();
-            var dev = await repo.GetDeviceAsync("Epi2");
-            if (dev != null) {
-                var data = await dataService.GetAllDataAsync(dev.DataReference);
-                foreach (var d in data) {
-                    Console.WriteLine("Log: {0}", d.TimeStamp.ToUniversalTime());
-                }
-            } else {
-                Console.WriteLine("Error: Could not find device");
-            }
+            //IDataRecordService dataService = new DataRecordService();
+            //var dev = await repo.GetDeviceAsync("Epi2");
+            //if (dev != null) {
+            //    var data = await dataService.GetAllDataAsync(dev.DataReference);
+            //    foreach (var d in data) {
+            //        Console.WriteLine("Log: {0}", d.TimeStamp.ToUniversalTime());
+            //    }
+            //} else {
+            //    Console.WriteLine("Error: Could not find device");
+            //}
 
-            //IDeviceController controller = new DeviceController(modbusService, dataService, repo);
-            //await controller.LoadDeviceAsync();
-            //await controller.Read();
-            Console.WriteLine("Shoud be done");
-            Console.ReadKey();
+            ////IDeviceController controller = new DeviceController(modbusService, dataService, repo);
+            ////await controller.LoadDeviceAsync();
+            ////await controller.Read();
+            //Console.WriteLine("Shoud be done");
+            //Console.ReadKey();
         }
 
         //static async Task Testing() {

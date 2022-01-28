@@ -33,7 +33,6 @@ builder.ConfigureServices((hostContext,services) => {
     services.AddHostedService<Worker>();
     services.AddDbContext<FacilityContext>();
     services.AddTransient<IFacilityRepository, FacilityRepository>();
-    services.AddTransient<IModbusService, ModbusService>();
     services.AddTransient<IDataRecordService, DataRecordService>();
     services.AddTransient<IDeviceController, DeviceController>();
 });
