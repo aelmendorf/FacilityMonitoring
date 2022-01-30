@@ -20,9 +20,31 @@ namespace FacilityMonitoring.Infrastructure.Data.MongoDB {
         API
     }
 
-    public class DeviceConfig {
-        public int Version { get; set; }
+    public class DataConfiguration:Entity {
+        public string Version { get; set; }
+        public string[] AnalogHeaders { get; set; }
+        public string[] DiscreteInputHeaders { get; set; }
+        public string[] OutputHeaders { get; set; }
+        public string[] AlertHeaders { get; set; }
+        public string[] VirtualHeaders { get; set; }
+    }
 
+
+    public class HoldingRegisters {
+
+    }
+
+    public class InputRegisters {
+
+    }
+
+    public class DiscreteInputs {
+
+    }
+
+    public class Coils {
+        public string[] Headers { get; set; }
+        public bool[] Data { get; set; }
     }
 
 

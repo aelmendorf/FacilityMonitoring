@@ -25,6 +25,6 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
         public ModbusAddress ModbusAddress { get; set; }
         public ActionType ActionType { get; set; }
         public ICollection<ActionOutput> ActionOutputs { get; set; } = new List<ActionOutput>();
-        public ICollection<Alert> Alerts { get; set; } = new List<Alert>();
+        public ICollection<AlertLevel> AlertLevels { get; set; } = new List<AlertLevel>();
     }
 }

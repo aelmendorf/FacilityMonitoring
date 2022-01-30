@@ -18,7 +18,7 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
         public DbSet<FacilityZone> FacilityZones { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
-            optionsBuilder.UseSqlServer("server=172.20.4.20;database=FacilityMonitoringTesting;" +
+            optionsBuilder.UseSqlServer("server=172.20.4.20;database=MonitorTesting_New;" +
                 "User Id=aelmendorf;Password=Drizzle123!;");
         }
 
@@ -29,12 +29,19 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
             builder.Entity<ModbusDevice>().HasBaseType<Device>();
             builder.Entity<MonitoringBox>().HasBaseType<ModbusDevice>();
             //Channel inheritance
-            builder.Entity<DiscreteInput>().HasBaseType<Channel>();
-            builder.Entity<AnalogInput>().HasBaseType<Channel>();
-            builder.Entity<VirtualInput>().HasBaseType<Channel>();
+            builder.Entity<InputChannel>().HasBaseType<Channel>();
+            builder.Entity<OutputChannel>().HasBaseType<Channel>();
+            builder.Entity<DiscreteInput>().HasBaseType<InputChannel>();
+            builder.Entity<AnalogInput>().HasBaseType<InputChannel>();
+            builder.Entity<VirtualInput>().HasBaseType<InputChannel>();
+            builder.Entity<DiscreteOutput>().HasBaseType<OutputChannel>();
             //Alert inheritance
             builder.Entity<DiscreteAlert>().HasBaseType<Alert>();
             builder.Entity<AnalogAlert>().HasBaseType<Alert>();
+            //AlertLevel Inheritance
+            builder.Entity<DiscreteLevel>().HasBaseType<AlertLevel>();
+            builder.Entity<AnalogLevel>().HasBaseType<AlertLevel>();
+
 
             builder.Entity<Channel>()
                 .OwnsOne(p => p.ChannelAddress);
@@ -78,17 +85,17 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
                 .WithMany(p => p.MonitoringBoxes)
                 .UsingEntity(j => j.ToTable("BoxModules"));
 
-            builder.Entity<DiscreteInput>()
-                .HasOne(e => e.DiscreteAlert)
-                .WithOne(e => e.DiscreteInput)
-                .HasForeignKey<DiscreteAlert>(p => p.DiscreteInputId)
+            builder.Entity<InputChannel>()
+                .HasOne(e => e.Alert)
+                .WithOne(e => e.InputChannel)
+                .HasForeignKey<Alert>(p => p.InputChannelId)
                 .IsRequired(false);
 
-            builder.Entity<AnalogInput>()
-                .HasMany(p => p.AnalogAlerts)
-                .WithOne(p => p.AnalogInput)
-                .HasForeignKey(p => p.AnalogInputId)
-                .IsRequired(false);
+            //builder.Entity<AnalogInput>()
+            //    .HasOne(p => p.AnalogAlert)
+            //    .WithOne(p => p.AnalogInput)
+            //    .HasForeignKey<AnalogAlert>(p => p.AnalogInputId)
+            //    .IsRequired(false);
 
             builder.Entity<AnalogInput>()
                 .HasOne(p => p.Sensor)
@@ -103,15 +110,21 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
                 .IsRequired(false);
 
             builder.Entity<FacilityAction>()
-                .HasMany(p => p.Alerts)
+                .HasMany(p => p.AlertLevels)
                 .WithOne(p => p.FacilityAction)
                 .HasForeignKey(p => p.FacilityActionId)
                 .IsRequired(false);
 
-            builder.Entity<Alert>()
-                .HasOne(p => p.FacilityAction)
-                .WithMany(p => p.Alerts)
-                .HasForeignKey(e => e.FacilityActionId)
+            builder.Entity<DiscreteAlert>()
+                .HasOne(e => e.AlertLevel)
+                .WithOne(e => e.DiscreteAlert)
+                .HasForeignKey<DiscreteLevel>(p => p.DiscrteAlertId)
+                .IsRequired(false);
+
+            builder.Entity<AnalogAlert>()
+                .HasMany(e => e.AlertLevels)
+                .WithOne(e => e.AnalogAlert)
+                .HasForeignKey(e => e.AnalogAlertId)
                 .IsRequired(false);
 
             builder.Entity<Device>()

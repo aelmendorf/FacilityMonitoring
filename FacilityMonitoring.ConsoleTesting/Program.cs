@@ -10,17 +10,25 @@ using FacilityMonitoring.Infrastructure.Data.MongoDB;
 using FacilityMonitoring.Infrastructure.Services;
 using MongoDB.Entities;
 using Modbus.Device;
+using System.Data;
 
 namespace FacilityMonitoring.ConsoleTesting {
     public class Program {
         static async Task Main(string[] args) {
             var context = new FacilityContext();
+            for(int i = 0; i < 16; i++) {
+               // context.Add(new AnalogInput() { });
+            }
+        }
+
+        private static async Task FunctionProgram() {
+            var context = new FacilityContext();
             //IModbusService modbusService = new ModbusService();
             var dev = await context.Devices.OfType<MonitoringBox>()
                 .Include(e => e.Channels)
                 .Include(e => e.ChannelMapping)
-                .Include(e=>e.NetworkConfiguration.ModbusConfig)
-                .FirstOrDefaultAsync(e=>e.Identifier=="Epi2");
+                .Include(e => e.NetworkConfiguration.ModbusConfig)
+                .FirstOrDefaultAsync(e => e.Identifier == "Epi2");
             if (dev != null) {
                 var channelMapping = dev.ChannelMapping;
                 var modbusConfig = dev.NetworkConfiguration.ModbusConfig;
@@ -149,82 +157,98 @@ namespace FacilityMonitoring.ConsoleTesting {
             }
         }
 
-        static async Task UpdateModbusAddress() {
-            using var context = new FacilityContext();
-            var channels = await context.Channels
-                .Include(e => e.ModbusDevice)
-                .Where(e => e.ModbusDevice.DisplayName == "EpiLab2")
-                .ToListAsync();
-            if (channels.Count > 0) {
-                var analogInputs = channels.OfType<AnalogInput>().OrderBy(e => e.SystemChannel).ToList();
-                var discreteInput = channels.OfType<DiscreteInput>().OrderBy(e => e.SystemChannel).ToList();
-                var outputs = channels.OfType<DiscreteOutput>().OrderBy(e => e.SystemChannel).ToList();
-                var vChannels = channels.OfType<VirtualInput>().OrderBy(e => e.SystemChannel).ToList();
+        private static async Task ParseModbus(MonitoringBox monitoring,FacilityContext context,ModbusResult result) {
+            var mapping = monitoring.ChannelMapping;
+            AnalogInput analogInput = new AnalogInput();
+            //analogInput.Alert = new AnalogAlert();
+
+            var alertHeaders = context.Alerts.OrderBy(e=>e.MobdusAddress.Address).Select(e => e.DisplayName);
+            var analogHeaders = monitoring.Channels.OfType<AnalogInput>().OrderBy(e=>e.SystemChannel).Select(e=>e.DisplayName);
+            var discreteHeaders = monitoring.Channels.OfType<DiscreteInput>().OrderBy(e => e.SystemChannel).Select(e => e.DisplayName);
+            var outputHeaders = monitoring.Channels.OfType<DiscreteOutput>().OrderBy(e => e.SystemChannel).Select(e => e.DisplayName);
+            var coilHeaders = monitoring.Channels.OfType<VirtualInput>().OrderBy(e => e.SystemChannel).Select(e => e.DisplayName);
+            DataTable table = new DataTable();
 
 
-                int alertCount = 0;
-                Console.WriteLine("DiscreteInput Count {0}", discreteInput.Count);
-                if (discreteInput.Count == 40) {
-                    for (int i = 0; i < 40; i++) {
-                        discreteInput[i].ModbusAddress.Address = i;
-                        discreteInput[i].ModbusAddress.RegisterType = ModbusRegister.DiscreteInput;
 
-                        ModbusAddress alertAddress = new ModbusAddress();
-                        alertAddress.Address = alertCount;
-                        alertAddress.RegisterType = ModbusRegister.Holding;
-                        alertAddress.RegisterLength = 0;
-
-                        discreteInput[i].AlertAddress = alertAddress;
-                        alertCount++;
-                    }
-                }
-
-                if (analogInputs.Count == 16) {
-                    for (int i = 0; i < 16; i++) {
-                        analogInputs[i].ModbusAddress.Address = i;
-                        analogInputs[i].ModbusAddress.RegisterType = ModbusRegister.Input;
-                        analogInputs[i].ModbusAddress.RegisterLength = 0;
-
-                        ModbusAddress alertAddress = new ModbusAddress();
-                        alertAddress.Address = alertCount;
-                        alertAddress.RegisterType = ModbusRegister.Holding;
-                        alertAddress.RegisterLength = 0;
-
-                        analogInputs[i].AlertAddress = alertAddress;
-                        alertCount++;
-                    }
-                }
-
-                if (outputs.Count == 8) {
-                    for (int i = 0; i < 8; i++) {
-                        outputs[i].ModbusAddress.Address = i + 40;
-                        outputs[i].ModbusAddress.RegisterType = ModbusRegister.Input;
-                    }
-                }
-
-                if (vChannels.Count == 4) {
-                    for (int i = 0; i < 4; i++) {
-                        vChannels[i].ModbusAddress.Address = i;
-                        vChannels[i].ModbusAddress.RegisterType = ModbusRegister.Coil;
-                    }
-                }
-
-                context.UpdateRange(analogInputs);
-                context.UpdateRange(discreteInput);
-                context.UpdateRange(outputs);
-                context.UpdateRange(vChannels);
-                var ret = await context.SaveChangesAsync();
-
-                if (ret > 0) {
-                    Console.WriteLine("Success, data should be updated");
-                } else {
-                    Console.WriteLine("Error Failed to save configurations");
-                }
-            } else {
-                Console.WriteLine("Error: Channel.Count=0");
-            }
-            Console.ReadKey();
         }
+
+        //static async Task UpdateModbusAddress() {
+        //    using var context = new FacilityContext();
+        //    var channels = await context.Channels
+        //        .Include(e => e.ModbusDevice)
+        //        .Where(e => e.ModbusDevice.DisplayName == "EpiLab2")
+        //        .ToListAsync();
+        //    if (channels.Count > 0) {
+        //        var analogInputs = channels.OfType<AnalogInput>().OrderBy(e => e.SystemChannel).ToList();
+        //        var discreteInput = channels.OfType<DiscreteInput>().OrderBy(e => e.SystemChannel).ToList();
+        //        var outputs = channels.OfType<DiscreteOutput>().OrderBy(e => e.SystemChannel).ToList();
+        //        var vChannels = channels.OfType<VirtualInput>().OrderBy(e => e.SystemChannel).ToList();
+
+
+        //        int alertCount = 0;
+        //        Console.WriteLine("DiscreteInput Count {0}", discreteInput.Count);
+        //        if (discreteInput.Count == 40) {
+        //            for (int i = 0; i < 40; i++) {
+        //                discreteInput[i].ModbusAddress.Address = i;
+        //                discreteInput[i].ModbusAddress.RegisterType = ModbusRegister.DiscreteInput;
+
+        //                ModbusAddress alertAddress = new ModbusAddress();
+        //                alertAddress.Address = alertCount;
+        //                alertAddress.RegisterType = ModbusRegister.Holding;
+        //                alertAddress.RegisterLength = 0;
+
+        //                discreteInput[i].AlertAddress = alertAddress;
+        //                alertCount++;
+        //            }
+        //        }
+
+        //        if (analogInputs.Count == 16) {
+        //            for (int i = 0; i < 16; i++) {
+        //                analogInputs[i].ModbusAddress.Address = i;
+        //                analogInputs[i].ModbusAddress.RegisterType = ModbusRegister.Input;
+        //                analogInputs[i].ModbusAddress.RegisterLength = 0;
+
+        //                ModbusAddress alertAddress = new ModbusAddress();
+        //                alertAddress.Address = alertCount;
+        //                alertAddress.RegisterType = ModbusRegister.Holding;
+        //                alertAddress.RegisterLength = 0;
+
+        //                analogInputs[i].AlertAddress = alertAddress;
+        //                alertCount++;
+        //            }
+        //        }
+
+        //        if (outputs.Count == 8) {
+        //            for (int i = 0; i < 8; i++) {
+        //                outputs[i].ModbusAddress.Address = i + 40;
+        //                outputs[i].ModbusAddress.RegisterType = ModbusRegister.Input;
+        //            }
+        //        }
+
+        //        if (vChannels.Count == 4) {
+        //            for (int i = 0; i < 4; i++) {
+        //                vChannels[i].ModbusAddress.Address = i;
+        //                vChannels[i].ModbusAddress.RegisterType = ModbusRegister.Coil;
+        //            }
+        //        }
+
+        //        context.UpdateRange(analogInputs);
+        //        context.UpdateRange(discreteInput);
+        //        context.UpdateRange(outputs);
+        //        context.UpdateRange(vChannels);
+        //        var ret = await context.SaveChangesAsync();
+
+        //        if (ret > 0) {
+        //            Console.WriteLine("Success, data should be updated");
+        //        } else {
+        //            Console.WriteLine("Error Failed to save configurations");
+        //        }
+        //    } else {
+        //        Console.WriteLine("Error: Channel.Count=0");
+        //    }
+        //    Console.ReadKey();
+        //}
 
         static async Task UpdateDeviceConfig() {
             using var context = new FacilityContext();

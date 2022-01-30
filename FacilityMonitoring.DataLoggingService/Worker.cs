@@ -13,13 +13,13 @@ namespace FacilityMonitoring.DataLoggingService {
 
         public async Task StartAsync(CancellationToken cancellationToken) {
             this._logger.LogInformation("Starting Service");
-            await this._controller.LoadDeviceAsync();
+            //await this._controller.LoadDeviceAsync();
             this._timer = new Timer(this.DataLogHandler, null, TimeSpan.Zero, TimeSpan.FromSeconds(2));
             this._logger.LogInformation("Logging Started");
         }
 
         private async void DataLogHandler(object state) {
-            await this._controller.Read();
+           // await this._controller.Read();
             this._logger.LogInformation("Logged Data");
         }
 

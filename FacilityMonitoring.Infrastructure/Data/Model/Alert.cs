@@ -2,22 +2,24 @@
 
     public class Alert {
         public int Id { get; set; }
+        public string DisplayName { get; set; }
         public bool Bypass { get; set; }
         public int  BypassResetTime { get; set; }
         public bool Enabled { get; set; }
-        public int? FacilityActionId { get; set; }
-        public FacilityAction FacilityAction { get; set; }
+        public ModbusAddress MobdusAddress { get; set; }
+        public int? InputChannelId { get; set; }
+        public InputChannel InputChannel { get; set; }
     }
 
     public class AnalogAlert:Alert {
-        public double SetPoint { get; set; }
-        public int? AnalogInputId { get; set; }
-        public AnalogInput AnalogInput { get; set; }
+        public ICollection<AnalogLevel> AlertLevels { get; set; }
+        //public int? AnalogInputId { get; set; }
+        //public AnalogInput AnalogInput { get; set; }
     }
 
     public class DiscreteAlert : Alert {
-        public DiscreteState TriggerOn { get; set; }
-        public int? DiscreteInputId { get; set; }
-        public DiscreteInput DiscreteInput { get; set; }
+        public DiscreteLevel AlertLevel { get; set; }
+        //public int? DiscreteInputId { get; set; }
+        //public DiscreteInput DiscreteInput { get; set; }
     }
 }

@@ -9,8 +9,8 @@ using System.Threading.Tasks;
 
 namespace FacilityMonitoring.Infrastructure.Services {
     public interface IDeviceController {
-        Task<DeviceData> Read();
-        Task LoadDeviceAsync();
+        //Task<DeviceData> Read();
+        //Task LoadDeviceAsync();
     }
     public class DeviceController : IDeviceController {
 
@@ -35,44 +35,44 @@ namespace FacilityMonitoring.Infrastructure.Services {
             this._repo = repository;
         }
 
-        public async Task LoadDeviceAsync() {
-            this._device = await this._repo.GetDeviceAsync("Epi2");
-            if (this._device != null) {
-                this._netConfig = this._device.NetworkConfiguration;
-                this._dataLoaded = this._netConfig.IPAddress != null;
-            } else {
-                this._dataLoaded = false;
-                Console.WriteLine("Error: Could not find device");
-            }
-        }
+        //public async Task LoadDeviceAsync() {
+        //    this._device = await this._repo.GetDeviceAsync("Epi2");
+        //    if (this._device != null) {
+        //        this._netConfig = this._device.NetworkConfiguration;
+        //        this._dataLoaded = this._netConfig.IPAddress != null;
+        //    } else {
+        //        this._dataLoaded = false;
+        //        Console.WriteLine("Error: Could not find device");
+        //    }
+        //}
 
-        public async Task<DeviceData> Read() {
-            //if (!this._dataLoaded) {
-            //    return null;
-            //}
-            //if (this._modbusService.Connect(this._netConfig.IPAddress, this._netConfig.Port)) {
-            //    var rawAnalog = await this._modbusService.ReadHoldingRegistersAsync((byte)this._netConfig.SlaveAddress,0,(ushort)this._netConfig.ModbusConfig.HoldingRegisters);
-            //    var rawDiscrete = await this._modbusService.ReadDiscreteInputsAsync((byte)this._netConfig.SlaveAddress,0, (ushort)this._netConfig.ModbusConfig.DiscreteInputs);
-            //    var rawInput = await this._modbusService.ReadInputRegistersAsync((byte)this._netConfig.SlaveAddress, 0, (ushort)this._netConfig.ModbusConfig.InputRegisters);
-            //    var rawCoils = await this._modbusService.ReadCoilsAsync((byte)this._netConfig.SlaveAddress,0, (ushort)this._netConfig.ModbusConfig.Coils);
-            //    if (rawAnalog != null && rawDiscrete != null && rawCoils != null && rawInput!=null) {
-            //        DeviceData data = new DeviceData();
-            //        data.TimeStamp = DateTime.Now;
-            //        //var analogData = this.ParseAnalogData(rawAnalog);
-            //        //var discrete = this.ParseDiscreteData(rawDiscrete);
-            //        //var coilData = this.ParseVirtualData(rawCoils);
-            //        this._modbusService.Disconnect();
-            //        return data;
-            //    } else {
-            //        this._modbusService.Disconnect();
-            //        return null;
-            //    }
-            //} else {
-            //    return null;
-            //}
-            return null;
+        //public async Task<DeviceData> Read() {
+        //    //if (!this._dataLoaded) {
+        //    //    return null;
+        //    //}
+        //    //if (this._modbusService.Connect(this._netConfig.IPAddress, this._netConfig.Port)) {
+        //    //    var rawAnalog = await this._modbusService.ReadHoldingRegistersAsync((byte)this._netConfig.SlaveAddress,0,(ushort)this._netConfig.ModbusConfig.HoldingRegisters);
+        //    //    var rawDiscrete = await this._modbusService.ReadDiscreteInputsAsync((byte)this._netConfig.SlaveAddress,0, (ushort)this._netConfig.ModbusConfig.DiscreteInputs);
+        //    //    var rawInput = await this._modbusService.ReadInputRegistersAsync((byte)this._netConfig.SlaveAddress, 0, (ushort)this._netConfig.ModbusConfig.InputRegisters);
+        //    //    var rawCoils = await this._modbusService.ReadCoilsAsync((byte)this._netConfig.SlaveAddress,0, (ushort)this._netConfig.ModbusConfig.Coils);
+        //    //    if (rawAnalog != null && rawDiscrete != null && rawCoils != null && rawInput!=null) {
+        //    //        DeviceData data = new DeviceData();
+        //    //        data.TimeStamp = DateTime.Now;
+        //    //        //var analogData = this.ParseAnalogData(rawAnalog);
+        //    //        //var discrete = this.ParseDiscreteData(rawDiscrete);
+        //    //        //var coilData = this.ParseVirtualData(rawCoils);
+        //    //        this._modbusService.Disconnect();
+        //    //        return data;
+        //    //    } else {
+        //    //        this._modbusService.Disconnect();
+        //    //        return null;
+        //    //    }
+        //    //} else {
+        //    //    return null;
+        //    //}
+        //    return null;
 
-        }
+        //}
 
        // private AnalogData ParseAnalogData(ushort[] rawAnalog) {
        //     AnalogData aData = new AnalogData();

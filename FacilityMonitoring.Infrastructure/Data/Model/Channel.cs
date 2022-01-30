@@ -40,24 +40,29 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
         public ICollection<FacilityZone> Zones { get; set; } = new List<FacilityZone>();
     }
 
-    public class DiscreteInput : Channel {
-        public ModbusAddress AlertAddress { get; set; }
-        public DiscreteAlert DiscreteAlert { get; set; }
-    }
-    
-    public class AnalogInput : Channel {
-        public ModbusAddress AlertAddress { get; set; }
-        public int? SensorId { get; set; }
-        public Sensor Sensor { get; set; }
-        public ICollection<AnalogAlert> AnalogAlerts { get; set; } = new List<AnalogAlert>();
+    public class InputChannel:Channel {
+        public Alert Alert { get; set; }
     }
 
-    public class DiscreteOutput: Channel {
-        public DiscreteState ChannelState { get; set; } 
+    public class OutputChannel:Channel {
+
+    }
+
+    public class DiscreteInput : InputChannel {
+        //public DiscreteAlert DiscreteAlert { get; set; }
+    }
+    
+    public class AnalogInput : InputChannel {
+        //public AnalogAlert AnalogAlert { get; set; }
+        public int? SensorId { get; set; }
+        public Sensor Sensor { get; set; }
+    }
+
+    public class DiscreteOutput: OutputChannel {
         public DiscreteState StartState { get; set; }
     }
 
-    public class VirtualInput : Channel {
-        public DiscreteAlert VirtualAlert { get; set; }
+    public class VirtualInput : InputChannel {
+       // public DiscreteAlert VirtualAlert { get; set; }
     }
 }
