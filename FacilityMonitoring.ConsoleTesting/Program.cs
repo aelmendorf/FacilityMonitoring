@@ -15,10 +15,7 @@ using System.Data;
 namespace FacilityMonitoring.ConsoleTesting {
     public class Program {
         static async Task Main(string[] args) {
-            var context = new FacilityContext();
-            for(int i = 0; i < 16; i++) {
-               // context.Add(new AnalogInput() { });
-            }
+
         }
 
         private static async Task FunctionProgram() {
@@ -26,13 +23,12 @@ namespace FacilityMonitoring.ConsoleTesting {
             //IModbusService modbusService = new ModbusService();
             var dev = await context.Devices.OfType<MonitoringBox>()
                 .Include(e => e.Channels)
-                .Include(e => e.ChannelMapping)
-                .Include(e => e.NetworkConfiguration.ModbusConfig)
+                .Include(e => e.NetworkConfiguration.ModbusConfig.ChannelMapping)
                 .FirstOrDefaultAsync(e => e.Identifier == "Epi2");
             if (dev != null) {
-                var channelMapping = dev.ChannelMapping;
+                
                 var modbusConfig = dev.NetworkConfiguration.ModbusConfig;
-
+                var channelMapping = modbusConfig.ChannelMapping;
                 while (true) {
                     bool exit = false;
                     var key = DisplayMenu();
@@ -157,21 +153,21 @@ namespace FacilityMonitoring.ConsoleTesting {
             }
         }
 
-        private static async Task ParseModbus(MonitoringBox monitoring,FacilityContext context,ModbusResult result) {
-            var mapping = monitoring.ChannelMapping;
-            AnalogInput analogInput = new AnalogInput();
-            //analogInput.Alert = new AnalogAlert();
+        //private static async Task ParseModbus(MonitoringBox monitoring,FacilityContext context,ModbusResult result) {
+        //    var mapping = monitoring.ChannelMapping;
+        //    AnalogInput analogInput = new AnalogInput();
+        //    //analogInput.Alert = new AnalogAlert();
 
-            var alertHeaders = context.Alerts.OrderBy(e=>e.MobdusAddress.Address).Select(e => e.DisplayName);
-            var analogHeaders = monitoring.Channels.OfType<AnalogInput>().OrderBy(e=>e.SystemChannel).Select(e=>e.DisplayName);
-            var discreteHeaders = monitoring.Channels.OfType<DiscreteInput>().OrderBy(e => e.SystemChannel).Select(e => e.DisplayName);
-            var outputHeaders = monitoring.Channels.OfType<DiscreteOutput>().OrderBy(e => e.SystemChannel).Select(e => e.DisplayName);
-            var coilHeaders = monitoring.Channels.OfType<VirtualInput>().OrderBy(e => e.SystemChannel).Select(e => e.DisplayName);
-            DataTable table = new DataTable();
+        //    var alertHeaders = context.Alerts.OrderBy(e=>e.ModbusAddress.Address).Select(e => e.DisplayName);
+        //    var analogHeaders = monitoring.Channels.OfType<AnalogInput>().OrderBy(e=>e.SystemChannel).Select(e=>e.DisplayName);
+        //    var discreteHeaders = monitoring.Channels.OfType<DiscreteInput>().OrderBy(e => e.SystemChannel).Select(e => e.DisplayName);
+        //    var outputHeaders = monitoring.Channels.OfType<DiscreteOutput>().OrderBy(e => e.SystemChannel).Select(e => e.DisplayName);
+        //    var coilHeaders = monitoring.Channels.OfType<VirtualInput>().OrderBy(e => e.SystemChannel).Select(e => e.DisplayName);
+        //    DataTable table = new DataTable();
 
 
 
-        }
+        //}
 
         //static async Task UpdateModbusAddress() {
         //    using var context = new FacilityContext();
@@ -250,69 +246,69 @@ namespace FacilityMonitoring.ConsoleTesting {
         //    Console.ReadKey();
         //}
 
-        static async Task UpdateDeviceConfig() {
-            using var context = new FacilityContext();
-            var monitoring = await context.Devices.OfType<MonitoringBox>().FirstOrDefaultAsync(e => e.DisplayName == "EpiLab2");
-            if (monitoring != null) {
-                ChannelRegisterMapping mapping = new ChannelRegisterMapping();
-                mapping.AlertRegisterType = ModbusRegister.Holding;
-                mapping.AlertStart = 0;
-                mapping.AlertStop = 55;
+        //static async Task UpdateDeviceConfig() {
+        //    using var context = new FacilityContext();
+        //    var monitoring = await context.Devices.OfType<MonitoringBox>().FirstOrDefaultAsync(e => e.DisplayName == "EpiLab2");
+        //    if (monitoring != null) {
+        //        ChannelRegisterMapping mapping = new ChannelRegisterMapping();
+        //        mapping.AlertRegisterType = ModbusRegister.Holding;
+        //        mapping.AlertStart = 0;
+        //        mapping.AlertStop = 55;
 
-                mapping.AnalogRegisterType = ModbusRegister.Input;
-                mapping.AnalogStart = 0;
-                mapping.AnalogStop = 15;
+        //        mapping.AnalogRegisterType = ModbusRegister.Input;
+        //        mapping.AnalogStart = 0;
+        //        mapping.AnalogStop = 15;
 
-                mapping.DiscreteRegisterType = ModbusRegister.DiscreteInput;
-                mapping.DiscreteStart = 0;
-                mapping.DiscreteStop = 39;
+        //        mapping.DiscreteRegisterType = ModbusRegister.DiscreteInput;
+        //        mapping.DiscreteStart = 0;
+        //        mapping.DiscreteStop = 39;
 
-                mapping.VirtualRegisterType = ModbusRegister.Coil;
-                mapping.VirtualStart = 0;
-                mapping.VirtualStop = 3;
+        //        mapping.VirtualRegisterType = ModbusRegister.Coil;
+        //        mapping.VirtualStart = 0;
+        //        mapping.VirtualStop = 3;
 
-                mapping.OutputRegisterType = ModbusRegister.DiscreteInput;
-                mapping.OutputStart = 40;
-                mapping.OutputStop = 47;
+        //        mapping.OutputRegisterType = ModbusRegister.DiscreteInput;
+        //        mapping.OutputStart = 40;
+        //        mapping.OutputStop = 47;
 
-                mapping.DeviceRegisterType = ModbusRegister.Holding;
-                mapping.DeviceStart = 56;
-                mapping.DeviceStop = 56;
+        //        mapping.DeviceRegisterType = ModbusRegister.Holding;
+        //        mapping.DeviceStart = 56;
+        //        mapping.DeviceStop = 56;
 
-                mapping.ActionRegisterType = ModbusRegister.DiscreteInput;
-                mapping.ActionStart = 48;
-                mapping.ActionStop = 53;
+        //        mapping.ActionRegisterType = ModbusRegister.DiscreteInput;
+        //        mapping.ActionStart = 48;
+        //        mapping.ActionStop = 53;
 
 
-                monitoring.ChannelMapping = mapping;
+        //        monitoring.ChannelMapping = mapping;
 
-                ModbusConfig config = new ModbusConfig();
-                config.Coils = 4;
-                config.HoldingRegisters = 57;
-                config.DiscreteInputs = 54;
-                config.InputRegisters = 16;
+        //        ModbusConfig config = new ModbusConfig();
+        //        config.Coils = 4;
+        //        config.HoldingRegisters = 57;
+        //        config.DiscreteInputs = 54;
+        //        config.InputRegisters = 16;
 
-                monitoring.NetworkConfiguration.ModbusConfig = config;
+        //        monitoring.NetworkConfiguration.ModbusConfig = config;
 
-                ModbusAddress addr = new ModbusAddress();
-                addr.RegisterType = ModbusRegister.Holding;
-                addr.Address = 56;
-                addr.RegisterLength = 1;
+        //        ModbusAddress addr = new ModbusAddress();
+        //        addr.RegisterType = ModbusRegister.Holding;
+        //        addr.Address = 56;
+        //        addr.RegisterLength = 1;
 
-                monitoring.ModbusAddress = addr;
+        //        monitoring.ModbusAddress = addr;
 
-                context.Update(monitoring);
-                var ret = await context.SaveChangesAsync();
-                if (ret > 0) {
-                    Console.WriteLine("Success, data should be updated");
-                } else {
-                    Console.WriteLine("Error Failed to save configurations");
-                }
-            } else {
-                Console.WriteLine("Could not find box");
-            }
-            Console.ReadKey();
-        }
+        //        context.Update(monitoring);
+        //        var ret = await context.SaveChangesAsync();
+        //        if (ret > 0) {
+        //            Console.WriteLine("Success, data should be updated");
+        //        } else {
+        //            Console.WriteLine("Error Failed to save configurations");
+        //        }
+        //    } else {
+        //        Console.WriteLine("Could not find box");
+        //    }
+        //    Console.ReadKey();
+        //}
 
         static async Task Test() {
             //var context = new FacilityContext();

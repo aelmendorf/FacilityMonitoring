@@ -6,7 +6,7 @@
         public bool Bypass { get; set; }
         public int  BypassResetTime { get; set; }
         public bool Enabled { get; set; }
-        public ModbusAddress MobdusAddress { get; set; }
+        public ModbusAddress ModbusAddress { get; set; }
         public int? InputChannelId { get; set; }
         public InputChannel InputChannel { get; set; }
     }

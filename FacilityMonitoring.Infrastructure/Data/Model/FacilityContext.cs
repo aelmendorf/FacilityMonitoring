@@ -51,10 +51,12 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
 
             builder.Entity<ModbusDevice>()
                 .OwnsOne(p => p.NetworkConfiguration)
-                .OwnsOne(p => p.ModbusConfig);
+                .OwnsOne(p => p.ModbusConfig, (p) => { 
+                    p.OwnsOne(e => e.ChannelMapping); 
+                });
 
-            builder.Entity<ModbusDevice>()
-                .OwnsOne(p => p.ChannelMapping);
+            //builder.Entity<ModbusDevice>()
+            //    .OwnsOne(p => p.ChannelMapping);
 
             builder.Entity<FacilityAction>()
                 .Property(e => e.Id)

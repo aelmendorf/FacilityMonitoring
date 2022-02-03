@@ -6,10 +6,10 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
     }
 
     public enum ModbusRegister {
-        DiscreteInput,
-        Input,
-        Holding,
-        Coil
+        Holding=1,
+        Coil=2,
+        DiscreteInput=3,
+        Input=4
     }
 
     [Owned]

@@ -11,6 +11,8 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
         public int InputRegisters { get; set; }
         public int HoldingRegisters { get; set; }
         public int Coils { get; set; }
+        public ModbusAddress ModbusAddress { get; set; }
+        public ChannelRegisterMapping ChannelMapping { get; set; }
 
     }
 
@@ -62,8 +64,6 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
 
     public class ModbusDevice:Device {
         public NetworkConfiguration NetworkConfiguration { get; set; }
-        public ChannelRegisterMapping ChannelMapping  { get; set; }
-        public ModbusAddress ModbusAddress { get;set; }
         public ICollection<Channel> Channels { get; set; } = new List<Channel>();
 
     }

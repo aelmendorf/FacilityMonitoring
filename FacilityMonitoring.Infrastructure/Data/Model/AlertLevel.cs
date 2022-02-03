@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 namespace FacilityMonitoring.Infrastructure.Data.Model {
     public abstract class AlertLevel {
         public int Id { get; set; }
+        public bool Bypass { get; set; }
+        public int BypassResetTime { get; set; }
+        public bool Enabled { get; set; }
         public int? FacilityActionId { get; set; }
         public FacilityAction FacilityAction { get; set; }
     }
