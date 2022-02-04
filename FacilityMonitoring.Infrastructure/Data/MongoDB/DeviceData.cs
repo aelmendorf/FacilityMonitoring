@@ -5,93 +5,44 @@ using System.Text;
 using System.Threading.Tasks;
 using MongoDB.Entities;
 
-namespace FacilityMonitoring.Infrastructure.Data.MongoDB { 
-    public class Device:Entity {
-        public string DeviceName { get; set; }
-       //public Many<DeviceData> DeviceData { get; set; }
-        public Device() {
-            //this.InitOneToMany(() => DeviceData);
-        }
-    }
+namespace FacilityMonitoring.Infrastructure.Data.MongoDB {
 
     public enum DeviceType {
         Modbus,
         BacNet,
         API
     }
+    public class MonitoringDevice:Entity {
+        public string DeviceName { get; set; }
 
-    public class DataConfiguration:Entity {
-        public string Version { get; set; }
+        public Many<DisplayConfig> DisplayConfig { get; set; }
+        public Many<Data> DeviceData { get; set; }
+        public MonitoringDevice() {
+            this.InitOneToMany(() => DeviceData);
+            this.InitOneToMany(() => DisplayConfig);
+        }
+    }
+
+    public class DisplayConfig:Entity {
+        public int Iteration { get; set; }
         public string[] AnalogHeaders { get; set; }
-        public string[] DiscreteInputHeaders { get; set; }
-        public string[] OutputHeaders { get; set; }
         public string[] AlertHeaders { get; set; }
+        public string[] DiscreteHeaders { get; set; }
         public string[] VirtualHeaders { get; set; }
+        public string[] OutputHeaders { get; set; }
+        public string[] ActionHeaders { get; set; }
+        public string DeviceHeader { get; set; }
     }
 
-
-    public class HoldingRegisters {
-
+    public class Data:Entity {
+        public int DisplayConfigIteration { get; set; }
+        public DateTime TimeStamp { get; set; }
+        public ushort[] AnalogInputs { get; set; }
+        public ushort[] Alerts { get; set; }
+        public bool[] DiscreteInputs { get; set; }
+        public bool[] VirtualInputs { get; set; }
+        public bool[] Outputs { get; set; }
+        public bool[] Actions { get; set; }
+        public int DeviceState { get; set; }
     }
-
-    public class InputRegisters {
-
-    }
-
-    public class DiscreteInputs {
-
-    }
-
-    public class Coils {
-        public string[] Headers { get; set; }
-        public bool[] Data { get; set; }
-    }
-
-
-
-
-
-
-    //public class DeviceData:Entity {
-    //    public One<Device> Device { get; set; }
-    //    public DateTime TimeStamp { get; set; }
-    //    public One<AnalogData> AnalogData { get; set; }
-    //    public One<DiscreteData> DiscreteData { get; set; }
-    //    public One<VirtualData> VirtualData { get; set; }
-    //    public One<OutputData> OutputData { get; set; }
-    //    public One<AlertData> AlertData { get; set; }
-    //}
-    //public class AnalogData:Entity {
-    //    public List<AnalogReading> Readings { get; set; }
-    //}
-    //public class DiscreteData : Entity {
-    //    public List<DiscreteReading> Readings { get; set; }
-    //}
-    //public class VirtualData : Entity {
-    //    public List<VirtualReading> Readings { get; set; }
-    //}
-    //public class AlertData : Entity {
-    //    public List<AlertReading> Readings { get; set; }
-    //}
-    //public class OutputData : Entity {
-    //    public List<OutputReading> Readings { get; set; }
-    //}
-    //public abstract class RegisterData {
-    //    public string Name { get; set; }
-    //}
-    //public class AnalogReading : RegisterData {
-    //    public double Value { get; set; }
-    //}
-    //public class DiscreteReading : RegisterData {
-    //    public bool Value { get; set; }
-    //}
-    //public class VirtualReading : RegisterData {
-    //    public bool Value { get; set; }
-    //}
-    //public class OutputReading : RegisterData {
-    //    public bool Value { get; set; }
-    //}
-    //public class AlertReading : RegisterData {
-    //    public int Value { get; set; }
-    //}
 }

@@ -54,18 +54,11 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
         public ModbusRegister ActionRegisterType { get; set; }
         public int ActionStart { get; set; }
         public int ActionStop { get; set; }
-
-        //public ChannelRegisterMap DiscreteRegisterMap { get; set; }
-        //public ChannelRegisterMap AnalogRegisterMap { get; set; }
-        //public ChannelRegisterMap AlertRegisterMap { get; set; }
-        //public ChannelRegisterMap VirtualRegisterMap { get; set; }
-        //public ChannelRegisterMap ModbusDeviceMap { get; set; }
     }
 
     public class ModbusDevice:Device {
         public NetworkConfiguration NetworkConfiguration { get; set; }
         public ICollection<Channel> Channels { get; set; } = new List<Channel>();
-
     }
 
     public class MonitoringBox:ModbusDevice {
