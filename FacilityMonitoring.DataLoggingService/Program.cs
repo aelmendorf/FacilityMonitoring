@@ -32,7 +32,7 @@ builder.ConfigureServices((hostContext,services) => {
     services.AddSingleton<IDataRecordService>(new DataRecordService());
     services.AddHostedService<Worker>();
     services.AddDbContext<FacilityContext>();
-    services.AddTransient<IFacilityRepository, FacilityRepository>();
+   //services.AddTransient<IFacilityRepository, FacilityRepository>();
     services.AddTransient<IDataRecordService, DataRecordService>();
     services.AddTransient<IDeviceController, DeviceController>();
 });

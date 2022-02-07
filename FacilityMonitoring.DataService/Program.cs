@@ -27,7 +27,7 @@ namespace FacilityMonitoring.DataService {
             .ConfigureServices((hostContext, services) => {
                 services.AddHostedService<Worker>()
                 .AddDbContext<FacilityContext>()
-                .AddTransient<IFacilityRepository, FacilityRepository>()
+                .AddTransient<IMonitoringBoxRepo, FacilityRepository>()
                 .AddTransient<IDataRecordService, DataRecordService>()
                 .AddTransient<IDeviceController, DeviceController>()
                 .AddLogging();

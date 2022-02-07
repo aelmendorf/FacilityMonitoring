@@ -4,6 +4,7 @@ using FacilityMonitoring.Infrastructure.Data.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FacilityMonitoring.Infrastructure.Migrations
 {
     [DbContext(typeof(FacilityContext))]
-    partial class FacilityContextModelSnapshot : ModelSnapshot
+    [Migration("20220207174449_AddModbusActionMap")]
+    partial class AddModbusActionMap
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -219,44 +221,6 @@ namespace FacilityMonitoring.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("FacilityActions");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            ActionName = "Okay",
-                            ActionType = 6
-                        },
-                        new
-                        {
-                            Id = 2,
-                            ActionName = "Alarm",
-                            ActionType = 5
-                        },
-                        new
-                        {
-                            Id = 3,
-                            ActionName = "Warning",
-                            ActionType = 4
-                        },
-                        new
-                        {
-                            Id = 4,
-                            ActionName = "SoftWarn",
-                            ActionType = 3
-                        },
-                        new
-                        {
-                            Id = 5,
-                            ActionName = "Maintenance",
-                            ActionType = 2
-                        },
-                        new
-                        {
-                            Id = 6,
-                            ActionName = "ResetWetFloor",
-                            ActionType = 1
-                        });
                 });
 
             modelBuilder.Entity("FacilityMonitoring.Infrastructure.Data.Model.FacilityZone", b =>
@@ -299,9 +263,11 @@ namespace FacilityMonitoring.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("FacilityActionId");
+                    b.HasIndex("FacilityActionId")
+                        .IsUnique();
 
-                    b.HasIndex("MonitoringBoxId");
+                    b.HasIndex("MonitoringBoxId")
+                        .IsUnique();
 
                     b.ToTable("ModbusActionMap");
                 });
@@ -831,15 +797,15 @@ namespace FacilityMonitoring.Infrastructure.Migrations
             modelBuilder.Entity("FacilityMonitoring.Infrastructure.Data.Model.ModbusActionMap", b =>
                 {
                     b.HasOne("FacilityMonitoring.Infrastructure.Data.Model.FacilityAction", "FacilityAction")
-                        .WithMany("ModbusActionMapping")
-                        .HasForeignKey("FacilityActionId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .WithOne("ModbusActionMap")
+                        .HasForeignKey("FacilityMonitoring.Infrastructure.Data.Model.ModbusActionMap", "FacilityActionId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("FacilityMonitoring.Infrastructure.Data.Model.MonitoringBox", "MonitoringBox")
-                        .WithMany("ModbusActionMapping")
-                        .HasForeignKey("MonitoringBoxId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .WithOne("ModbusActionMap")
+                        .HasForeignKey("FacilityMonitoring.Infrastructure.Data.Model.ModbusActionMap", "MonitoringBoxId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.OwnsOne("FacilityMonitoring.Infrastructure.Data.Model.ModbusAddress", "ModbusAddress", b1 =>
@@ -1082,7 +1048,7 @@ namespace FacilityMonitoring.Infrastructure.Migrations
                 {
                     b.Navigation("AlertLevels");
 
-                    b.Navigation("ModbusActionMapping");
+                    b.Navigation("ModbusActionMap");
                 });
 
             modelBuilder.Entity("FacilityMonitoring.Infrastructure.Data.Model.FacilityZone", b =>
@@ -1117,7 +1083,7 @@ namespace FacilityMonitoring.Infrastructure.Migrations
 
             modelBuilder.Entity("FacilityMonitoring.Infrastructure.Data.Model.MonitoringBox", b =>
                 {
-                    b.Navigation("ModbusActionMapping");
+                    b.Navigation("ModbusActionMap");
                 });
 #pragma warning restore 612, 618
         }

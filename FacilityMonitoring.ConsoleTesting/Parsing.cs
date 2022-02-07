@@ -12,9 +12,11 @@ using FacilityMonitoring.Infrastructure.Data.MongoDB;
 namespace FacilityMonitoring.ConsoleTesting {
     public class Parsing {
         static async Task Main(string[] args) {
-            //ParseConfiguation();
+            ParseConfiguation();
             //await TestModbus();
-            //await FixDisplayNames();
+            //await FixDiscreteNames("Epi1");
+            //await FixAnalogNames("Epi1");
+            //await FixOutputNames("Epi1");
             //await SetAlertNames();
             //await TestModbusWithNames();
             //await TestingMongo();
@@ -22,7 +24,77 @@ namespace FacilityMonitoring.ConsoleTesting {
             //await DB.DeleteAsync<DisplayConfig>("61fd79a9b37b0a184a9f2372");
             //Console.WriteLine("Check the database");
             //await CreateDisplayConfig();
-            await LogDataTest();
+            //await LogDataTest();
+            //var context = new FacilityContext();
+            //IMonitoringBoxRepo repo = new FacilityRepository(context);
+            //var e1RegCounts=repo.UpdateChannelMapping("Epi1");
+            //var e2RegCounts = repo.UpdateChannelMapping("Epi2");
+            //var e1Mapping = repo.UpdateChannelRegisterMap("Epi1");
+            //var e2Mapping = repo.UpdateChannelRegisterMap("Epi2");
+
+            //Console.WriteLine("Epi 1 Register Counts:");
+            //Console.WriteLine($"Holding {e1RegCounts.holdingCount} Inputs: {e1RegCounts.inputCount} Discrete: {e1RegCounts.discreteCount} Coil: {e1RegCounts.coilCount}");
+            //Console.WriteLine();
+            //Console.WriteLine("Epi 2 Register Counts:");
+            //Console.WriteLine($"Holding {e2RegCounts.holdingCount} Inputs: {e2RegCounts.inputCount} Discrete: {e2RegCounts.discreteCount} Coil: {e2RegCounts.coilCount}");
+            //Console.WriteLine(); Console.WriteLine();
+            //Console.WriteLine("Epi 1 Channel Mapping");
+            //Console.WriteLine($"AnalogStart {e1Mapping.AnalogStart} AnalogStop: {e1Mapping.AnalogStop}");
+            //Console.WriteLine($"DiscreteStart {e1Mapping.DiscreteStart} DiscreteStop: {e1Mapping.DiscreteStop}");
+            //Console.WriteLine($"OutputStart {e1Mapping.OutputStart} OutputStop: {e1Mapping.OutputStop}");
+            //Console.WriteLine($"VirtualStart {e1Mapping.VirtualStart} VirtualStop: {e1Mapping.VirtualStop}");
+            //Console.WriteLine($"AlertStart {e1Mapping.AlertStart} AlertStop: {e1Mapping.AlertStop}");
+            //Console.WriteLine($"ActionStart {e1Mapping.ActionStart} ActionStop: {e1Mapping.AlertStop}");
+
+            //Console.WriteLine(); Console.WriteLine();
+            //Console.WriteLine("Epi 2 Channel Mapping");
+            //Console.WriteLine($"AnalogStart {e2Mapping.AnalogStart} AnalogStop: {e2Mapping.AnalogStop}");
+            //Console.WriteLine($"DiscreteStart {e2Mapping.DiscreteStart} DiscreteStop: {e2Mapping.DiscreteStop}");
+            //Console.WriteLine($"OutputStart {e2Mapping.OutputStart} OutputStop: {e2Mapping.OutputStop}");
+            //Console.WriteLine($"VirtualStart {e2Mapping.VirtualStart} VirtualStop: {e2Mapping.VirtualStop}");
+            //Console.WriteLine($"AlertStart {e2Mapping.AlertStart} AlertStop: {e2Mapping.AlertStop}");
+            //Console.WriteLine($"ActionStart {e2Mapping.ActionStart} ActionStop: {e2Mapping.AlertStop}");
+
+            //Console.ReadKey();
+
+            //using var context = new FacilityContext();
+            //var device = context.Devices.OfType<MonitoringBox>().FirstOrDefault(e => e.Identifier == "Epi2");
+
+            //ChannelRegisterMapping channelMapping = new ChannelRegisterMapping();
+
+            //channelMapping.AnalogRegisterType = ModbusRegister.Input;
+            //channelMapping.AnalogStart = 0;
+            //channelMapping.AnalogStop = 15;
+
+            //channelMapping.DiscreteRegisterType = ModbusRegister.DiscreteInput;
+            //channelMapping.DiscreteStart = 0;
+            //channelMapping.DiscreteStop = 39;
+
+            //channelMapping.OutputRegisterType = ModbusRegister.DiscreteInput;
+            //channelMapping.OutputStart = 40;
+            //channelMapping.OutputStop = 47;
+
+            //channelMapping.ActionRegisterType = ModbusRegister.DiscreteInput;
+            //channelMapping.ActionStart = 48;
+            //channelMapping.ActionStop = 53;
+
+            //channelMapping.VirtualRegisterType = ModbusRegister.Coil;
+            //channelMapping.VirtualStart = 0;
+            //channelMapping.VirtualStop = 3;
+
+            //channelMapping.AlertRegisterType = ModbusRegister.Holding;
+            //channelMapping.AlertStart = 0;
+            //channelMapping.AlertStop = 59;
+
+            //channelMapping.DeviceRegisterType = ModbusRegister.Holding;
+            //channelMapping.DeviceStart = 60;
+            //channelMapping.DeviceStop = 60;
+
+            //device.NetworkConfiguration.ModbusConfig.ChannelMapping=channelMapping;
+            //context.Update(device);
+            //context.SaveChanges();
+            //Console.WriteLine("Check Database");
+            //Console.ReadKey();
 
         }
 
@@ -81,31 +153,6 @@ namespace FacilityMonitoring.ConsoleTesting {
             Console.WriteLine("Check the database");
         }
 
-        static async Task FixDisplayNames() {
-            Console.WriteLine("Fixing Channel Names, Please Wait....");
-            using var context = new FacilityContext();
-            var monitoring = context.Devices.OfType<MonitoringBox>()
-                .Include(e => e.Channels)
-                .FirstOrDefault(e=>e.Identifier=="Epi1");
-            var dInputs = monitoring.Channels.OfType<DiscreteInput>().OrderBy(e => e.SystemChannel).ToList();
-            foreach (var dIn in dInputs) {
-                dIn.Identifier = "Discrete " + dIn.SystemChannel;
-                if (string.IsNullOrEmpty(dIn.DisplayName)) {
-                    dIn.DisplayName = dIn.Identifier;
-                } else if (dIn.DisplayName == "Not Set") {
-                    dIn.DisplayName = dIn.Identifier;
-                }
-            }
-            context.UpdateRange(dInputs);
-            var ret = await context.SaveChangesAsync();
-            if (ret > 0) {
-                Console.WriteLine("Changes saved");
-            } else {
-                Console.WriteLine("Save Failed");
-            }
-            Console.WriteLine();
-            Console.ReadKey();
-        }
         static async Task TestModbus() {
             using var context = new FacilityContext();
             var monitoring = context.Devices.OfType<MonitoringBox>()
@@ -211,11 +258,12 @@ namespace FacilityMonitoring.ConsoleTesting {
                     .OrderBy(e => e.SystemChannel)
                     .Select(e => e.DisplayName)
                     .ToArray();
+                displayConfig.ActionHeaders = new string[1];
 
-                displayConfig.ActionHeaders = context.FacilityActions
-                    .OrderBy(e => e.ModbusAddress.Address)
-                    .Select(e => e.ActionName)
-                    .ToArray();
+                //displayConfig.ActionHeaders = context.FacilityActions.Include(e=>e.ModbusActionMap)
+                //    .OrderBy(e => e.ModbusActionMap.ModbusAddress.Address)
+                //    .Select(e => e.ActionName)
+                //    .ToArray();
 
                 displayConfig.AlertHeaders = context.Alerts.Include(e => e.InputChannel)
                     .Where(e => e.InputChannel.ModbusDeviceId == monitoring.Id)
@@ -328,6 +376,83 @@ namespace FacilityMonitoring.ConsoleTesting {
             //FacilityParser.CreateAnalogInputs();
             //FacilityParser.CreateVirtualInputs();
             Console.WriteLine("Press any key..");
+            Console.ReadKey();
+        }
+
+        static async Task FixDiscreteNames(string box) {
+            Console.WriteLine("Fixing Discrete Names, Please Wait....");
+            using var context = new FacilityContext();
+            var monitoring = context.Devices.OfType<MonitoringBox>()
+                .Include(e => e.Channels)
+                .FirstOrDefault(e => e.Identifier == box);
+            var dInputs = monitoring.Channels.OfType<DiscreteInput>().OrderBy(e => e.SystemChannel).ToList();
+            foreach (var dIn in dInputs) {
+                dIn.Identifier = "Discrete " + dIn.SystemChannel;
+                if (string.IsNullOrEmpty(dIn.DisplayName)) {
+                    dIn.DisplayName = dIn.Identifier;
+                } else if (dIn.DisplayName == "Not Set") {
+                    dIn.DisplayName = dIn.Identifier;
+                }
+            }
+            context.UpdateRange(dInputs);
+            var ret = await context.SaveChangesAsync();
+            if (ret > 0) {
+                Console.WriteLine("Changes saved");
+            } else {
+                Console.WriteLine("Save Failed");
+            }
+            Console.WriteLine();
+            Console.ReadKey();
+        }
+
+        static async Task FixAnalogNames(string box) {
+            Console.WriteLine("Fixing Analog Names, Please Wait....");
+            using var context = new FacilityContext();
+            var monitoring = context.Devices.OfType<MonitoringBox>()
+                .Include(e => e.Channels)
+                .FirstOrDefault(e => e.Identifier == box);
+            var dInputs = monitoring.Channels.OfType<AnalogInput>().OrderBy(e => e.SystemChannel).ToList();
+            foreach (var dIn in dInputs) {
+                dIn.Identifier = "Analog " + dIn.SystemChannel;
+                if (string.IsNullOrEmpty(dIn.DisplayName)) {
+                    dIn.DisplayName = dIn.Identifier;
+                } else if (dIn.DisplayName == "Not Set") {
+                    dIn.DisplayName = dIn.Identifier;
+                }
+            }
+            context.UpdateRange(dInputs);
+            var ret = await context.SaveChangesAsync();
+            if (ret > 0) {
+                Console.WriteLine("Changes saved");
+            } else {
+                Console.WriteLine("Save Failed");
+            }
+            Console.WriteLine();
+            Console.ReadKey();
+        }
+        static async Task FixOutputNames(string box) {
+            Console.WriteLine("Fixing Output Names, Please Wait....");
+            using var context = new FacilityContext();
+            var monitoring = context.Devices.OfType<MonitoringBox>()
+                .Include(e => e.Channels)
+                .FirstOrDefault(e => e.Identifier == box);
+            var dInputs = monitoring.Channels.OfType<DiscreteOutput>().OrderBy(e => e.SystemChannel).ToList();
+            foreach (var dIn in dInputs) {
+                dIn.Identifier = "Analog " + dIn.SystemChannel;
+                if (string.IsNullOrEmpty(dIn.DisplayName)) {
+                    dIn.DisplayName = dIn.Identifier;
+                } else if (dIn.DisplayName == "Not Set") {
+                    dIn.DisplayName = dIn.Identifier;
+                }
+            }
+            context.UpdateRange(dInputs);
+            var ret = await context.SaveChangesAsync();
+            if (ret > 0) {
+                Console.WriteLine("Changes saved");
+            } else {
+                Console.WriteLine("Save Failed");
+            }
+            Console.WriteLine();
             Console.ReadKey();
         }
     }

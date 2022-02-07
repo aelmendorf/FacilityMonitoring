@@ -10,109 +10,142 @@ using FacilityMonitoring.Infrastructure.Data.MongoDB;
 using System.Linq.Expressions;
 
 namespace FacilityMonitoring.Infrastructure.Services {
-    public interface IFacilityRepository {
-        //Task<Alert> GetAlertAsync(int id);
-        //Task<IList<AnalogInput>> GetAnalogInputsAsync(string device_id);
-        //Task<IList<Channel>> GetChannelsAsync(string device_id);
-        //Task<string> GetDataReferenceAsync(string device_id);
-        //Task<ModbusDevice> GetDeviceAsync(string device_id);
-        //Task<IList<DiscreteInput>> GetDiscreteInputsAsync(string device_id);
-        //Task<IList<DiscreteOutput>> GetDiscreteOutputsAsync(string device_id);
-        //Task<IList<FacilityAction>> GetFacilityActions();
-        //Task<IList<VirtualInput>> GetVirtualInputsAsync(string device_id);
-        //Task<IList<string>> GetHeaders<T>() where T : Channel;
+
+    public class DisplayHeaders {
+        string Version { get; set; }
+        string[] AnalogHeaders { get; set; }
+        string[] DiscreteHeaders { get; set; }
+        string[] VirtualHeaders { get; set; }
+        string[] OutputHeaders { get; set; }
+        string[] AlertHeaders { get; set; }
+        string[] ActionHeaders { get; set; }
     }
 
-    public class FacilityRepository : IFacilityRepository {
+    public interface IMonitoringBoxRepo {
+        MonitoringBox GetMonitoringBox(string identifier);
+        IList<Channel> GetBoxChannels(string identifier);
+        DisplayHeaders GenerateHeaders(string boxIdentifier);
+        int GetAlertCount(string box);
+        int GetChannelCount<T>(string box) where T : Channel;
+        int GetActionCount();
+        (int inputCount, int holdingCount, int coilCount, int discreteCount) UpdateChannelMapping(string box);
+        ChannelRegisterMapping UpdateChannelRegisterMap(string box);
+
+
+    }
+
+    public class FacilityRepository : IMonitoringBoxRepo {
         private readonly FacilityContext _context;
 
         public FacilityRepository(FacilityContext context) {
             this._context = context;
         }
 
-        //public async Task<IList<Channel>> GetChannelsAsync(string device_id) {
-        //    return (await this._context.Channels.AsNoTracking()
-        //        .Include(e => e.ModbusDevice)
-        //        .Include(e => e.ModbusAddress)
-        //        .Where(e => e.ModbusDevice.Identifier == device_id)
-        //        .ToListAsync());
-        //}
+        public DisplayHeaders GenerateHeaders(string boxIdentifier) {
+            throw new NotImplementedException();
+        }
 
-        //public async Task<IList<AnalogInput>> GetAnalogInputsAsync(string device_id) {
-        //    return await this._context.Channels.OfType<AnalogInput>()
-        //        .AsNoTracking()
-        //        .Include(e => e.AnalogAlerts)
-        //        .Include(e => e.ModbusAddress)
-        //        .Where(e => e.ModbusDevice.Identifier == device_id)
-        //        .OrderBy(e => e.SystemChannel)
-        //        .ToListAsync();
-        //}
+        public IList<Channel> GetBoxChannels(string identifier) {
+            throw new NotImplementedException();
+        }
 
-        //public async Task<IList<DiscreteInput>> GetDiscreteInputsAsync(string device_id) {
-        //    return await this._context.Channels.OfType<DiscreteInput>()
-        //        .AsNoTracking()
-        //        .Include(e => e.DiscreteAlert)
-        //        .Include(e => e.ModbusAddress)
-        //        .Where(e => e.ModbusDevice.Identifier == device_id && !(e is VirtualInput))
-        //        .OrderBy(e => e.SystemChannel)
-        //        .ToListAsync();
-        //}
+        public MonitoringBox GetMonitoringBox(string identifier) {
+            throw new NotImplementedException();
+        }
 
-        //public async Task<IList<DiscreteOutput>> GetDiscreteOutputsAsync(string device_id) {
-        //    return await this._context.Channels.OfType<DiscreteOutput>()
-        //        .AsNoTracking()
-        //        .Include(e => e.ModbusAddress)
-        //        .Where(e => e.ModbusDevice.Identifier == device_id)
-        //        .OrderBy(e => e.SystemChannel)
-        //        .ToListAsync();
-        //}
+        public int GetChannelCount<T>(string box) where T:Channel {
+            return this._context.Channels.OfType<T>()
+                .Include(e => e.ModbusDevice)
+                .Where(e => e.ModbusDevice.Identifier == box)
+                .Count();
+        }
 
-        //public async Task<IList<VirtualInput>> GetVirtualInputsAsync(string device_id ) {
-        //    return await this._context.Channels.OfType<VirtualInput>()
-        //        .AsNoTracking()
-        //        .Include(e => e.ModbusAddress)
-        //        .Where(e => e.ModbusDevice.Identifier == device_id)
-        //        .OrderBy(e=>e.SystemChannel)
-        //        .ToListAsync();
-        //}
+        public int GetAlertCount(string box) {
+            return this._context.Alerts
+                .Include(e => e.InputChannel)
+                .Where(e => e.InputChannel.ModbusDevice.Identifier == box)
+                .Count();
+        }
+        public int GetActionCount() {
+            return this._context.FacilityActions.Count();
+        }
 
-        //public async Task<Alert> GetAlertAsync(int id) {
-        //    return await this._context.Alerts.FirstOrDefaultAsync(e => e.Id == id);
-        //}
+        public (int start, int stop) GetChannelRegisterMap<T>(string box) where T: Channel {
+            var start = this._context.Channels.OfType<T>()
+                .Where(e => e.ModbusDevice.Identifier == box)
+                .Min(e => e.ModbusAddress.Address);
 
-        //public async Task<string> GetDataReferenceAsync(string device_id) {
-        //    var device = await this.GetDeviceAsync(device_id);
-        //    if (device != null) {
-        //        return device.DataReference;
-        //    } else {
-        //        return null;
-        //    }
-        //}
+            var stop = this._context.Channels.OfType<T>()
+                .Where(e => e.ModbusDevice.Identifier == box)
+                .Max(e => e.ModbusAddress.Address);
 
-        //public async Task<ModbusDevice> GetDeviceAsync(string device_id) {
-        //    return await this._context.Devices.OfType<ModbusDevice>().AsNoTracking()
-        //        .Include(e => e.Channels)
-        //            .ThenInclude(e => e.ModbusAddress)
-        //        .FirstOrDefaultAsync(e => e.Identifier == device_id);
-        //}
+            return (start, stop);
+        }
 
-        //public async Task<IList<FacilityAction>> GetFacilityActions() {
-        //    return await this._context.FacilityActions
-        //        .AsNoTracking()
-        //        .ToListAsync();
-        //}
+        public (int start, int stop) GetAlertRgisterMap(string box) {
+            var start = this._context.Alerts.Include(e=>e.InputChannel)
+                .Where(e => e.InputChannel.ModbusDevice.Identifier == box)
+                .Min(e => e.ModbusAddress.Address);
+            var stop = this._context.Alerts.Include(e => e.InputChannel)
+                .Where(e => e.InputChannel.ModbusDevice.Identifier == box)
+                .Max(e => e.ModbusAddress.Address);
+            return (start, stop);
+        }
 
-        //public async Task<IList<string>> GetAnalogHeaders<T>() where T:Channel {
-        //    return await this._context.Channels
-        //        .AsNoTracking()
-        //        .OfType<T>()
-        //        .OrderBy(e => e.SystemChannel)
-        //        .Select(e=>e.Identifier)
-        //        .ToListAsync();
-        //}
+        public (int start, int stop) GetActionRegisterMap(string box) {
+            //var start = this._context.Device
+            //    .Include(e=>e.ModbusActionMap)
+            //    .Where(e=>e.ModbusActionMap.MonitoringBox.Identifier==box)
+            //    .Min(e => e.ModbusActionMap.ModbusAddress.Address);
 
-        //public Task<IList<string>> GetHeaders<T>() where T : Channel {
-        //    throw new NotImplementedException();
-        //}
+            //var stop = this._context.FacilityActions
+            //    .Include(e => e.ModbusActionMap)
+            //    .Where(e => e.ModbusActionMap.MonitoringBox.Identifier == box)
+            //    .Max(e => e.ModbusActionMap.ModbusAddress.Address);
+
+            return (0, 0);
+        }
+
+        public (int inputCount,int holdingCount,int coilCount,int discreteCount) UpdateChannelMapping(string box) {
+            var aCount = this.GetChannelCount<AnalogInput>(box);
+            var dCount = this.GetChannelCount<DiscreteInput>(box);
+            var coilCount = this.GetChannelCount<VirtualInput>(box);
+            var outCount = this.GetChannelCount<OutputChannel>(box);
+            var holdingCount = this.GetAlertCount(box) + 1;
+            var actionCount = this.GetActionCount();
+            var discreteCount = dCount + outCount+actionCount;
+            var inputCount = aCount;
+            return (inputCount, holdingCount, coilCount, discreteCount);
+        }
+
+        public ChannelRegisterMapping UpdateChannelRegisterMap(string box) {
+            ChannelRegisterMapping mapping = new ChannelRegisterMapping();
+            var analogMap = this.GetChannelRegisterMap<AnalogInput>(box);
+            var discreteMap = this.GetChannelRegisterMap<DiscreteInput>(box);
+            var virtualMap = this.GetChannelRegisterMap<VirtualInput>(box);
+            var outputMap = this.GetChannelRegisterMap<OutputChannel>(box);
+            var alertMap = this.GetAlertRgisterMap(box);
+            var actionMap = this.GetActionRegisterMap(box);
+
+            mapping.AnalogStart = analogMap.start;
+            mapping.AnalogStop = analogMap.stop;
+
+            mapping.DiscreteStart = discreteMap.start;
+            mapping.DiscreteStop = discreteMap.stop;
+
+            mapping.VirtualStart = virtualMap.start;
+            mapping.VirtualStop = virtualMap.stop;
+
+            mapping.AlertStart = alertMap.start;
+            mapping.AlertStop = alertMap.stop;
+
+            mapping.ActionStart = actionMap.start;
+            mapping.ActionStop = actionMap.stop;
+
+            mapping.OutputStart = outputMap.start;
+            mapping.OutputStop = outputMap.stop;
+
+            return mapping;
+        }
     }
 }

@@ -13,7 +13,6 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
         public int Coils { get; set; }
         public ModbusAddress ModbusAddress { get; set; }
         public ChannelRegisterMapping ChannelMapping { get; set; }
-
     }
 
     public class NetworkConfiguration {
@@ -62,6 +61,7 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
     }
 
     public class MonitoringBox:ModbusDevice {
+        public ICollection<ModbusActionMap> ModbusActionMapping { get; set; }
         public ICollection<Module> Modules { get; set; } = new List<Module>();
     }
 }

@@ -10,6 +10,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FacilityMonitoring.ConsoleTesting {
     public class FacilityParser {
+
+        public static string boxId = "Epi2";
+        public static string boxAnalogPath = $@"C:\MonitorFiles\{boxId}\ANALOG.TXT";
+        public static string boxActionPath = $@"C:\MonitorFiles\{boxId}\ACTIONS.TXT";
+        public static string boxDiscretePath = $@"C:\MonitorFiles\{boxId}\DIGITAL.TXT";
+        public static string boxVirtualPath = $@"C:\MonitorFiles\{boxId}\VIRTUAL.TXT";
+        public static string boxOutputPath = $@"C:\MonitorFiles\{boxId}\OUTPUT.TXT";
+        public static string boxNetworkPath = $@"C:\MonitorFiles\{boxId}\NETWORK.TXT";
+
+
         public static void CreateAnalogInputs() {
             Console.WriteLine("Creating EpiLab1 AnalogInputs");
             var context = new FacilityContext();
@@ -17,7 +27,7 @@ namespace FacilityMonitoring.ConsoleTesting {
                 .Include(e => e.Channels)
                 .Include(e => e.Modules)
                 .AsTracking()
-                .FirstOrDefault(e=>e.Identifier=="Epi1");
+                .FirstOrDefault(e=>e.Identifier== boxId);
 
             var facilityActions = context.FacilityActions
                 .Include(e => e.ActionOutputs)
@@ -46,7 +56,7 @@ namespace FacilityMonitoring.ConsoleTesting {
                 .Include(e => e.Channels)
                 .Include(e => e.Modules)
                 .AsTracking()
-                .FirstOrDefault(e => e.Identifier == "Epi1");
+                .FirstOrDefault(e => e.Identifier == boxId);
 
             var actions = context.FacilityActions.AsTracking().ToList();
 
@@ -72,7 +82,7 @@ namespace FacilityMonitoring.ConsoleTesting {
                 .Include(e => e.Channels)
                 .Include(e => e.Modules)
                 .AsTracking()
-                .FirstOrDefault(e => e.Identifier == "Epi1");
+                .FirstOrDefault(e => e.Identifier == boxId);
 
             var actions = context.FacilityActions.AsTracking().ToList();
 
@@ -98,7 +108,7 @@ namespace FacilityMonitoring.ConsoleTesting {
                 .Include(e => e.Channels)
                 .Include(e => e.Modules)
                 .AsTracking()
-                .FirstOrDefault(e => e.Identifier == "Epi1");
+                .FirstOrDefault(e => e.Identifier == boxId);
 
             if (monitoringBox != null) {
                 Console.WriteLine("Found Monitoring Box: {0}", monitoringBox.DisplayName);
@@ -121,8 +131,8 @@ namespace FacilityMonitoring.ConsoleTesting {
             MonitoringBox box = new MonitoringBox();
 
             box.NetworkConfiguration = ParseNetworkConfiguration();
-            box.Identifier = "Epi1";
-            box.DisplayName = "EpiLab1";
+            box.Identifier = boxId;
+            box.DisplayName = boxId+" Lab";
             box.Status = "Normal";
             box.BypassAlarms = false;
             box.ReadInterval = 5;
@@ -139,11 +149,16 @@ namespace FacilityMonitoring.ConsoleTesting {
         public static void CreateFacilityActions() {
             Console.WriteLine("Creating Monitoring Box EpiLab2");
             var context = new FacilityContext();
-            var outputs = context.Channels.OfType<DiscreteOutput>().AsTracking().ToList();
-
-            if (outputs.Count > 0) {
-                var actions = ParseActions(outputs);
-                context.AddRange(actions);
+            var monitoring = context.Devices.OfType<MonitoringBox>()
+                .Include(e=>e.Channels)
+                .AsTracking()
+                .FirstOrDefault(e => e.Identifier == boxId);
+            var actions = context.FacilityActions.AsTracking().ToList();
+            //var outputs = context.Channels.OfType<DiscreteOutput>().AsTracking().ToList();
+            if ( monitoring!=null) {
+                var outputs = monitoring.Channels.OfType<DiscreteOutput>().OrderBy(e=>e.SystemChannel).ToList();
+                var actionMapping = ParseActionMapping(outputs,actions,monitoring);
+                context.AddRange(actionMapping);
                 var ret = context.SaveChanges();
                 if (ret > 0) {
                     Console.WriteLine("FacilityActions should be created");
@@ -155,7 +170,7 @@ namespace FacilityMonitoring.ConsoleTesting {
             }
         }
         public static NetworkConfiguration ParseNetworkConfiguration() {
-            var arr = JArray.Parse(File.ReadAllText(@"C:\MonitorFiles\Epi1\NETWORK.TXT"));
+            var arr = JArray.Parse(File.ReadAllText(boxNetworkPath));
             NetworkConfiguration netConfig = new NetworkConfiguration();
             netConfig.ModbusConfig = new ModbusConfig();
             ChannelRegisterMapping channelMapping = new ChannelRegisterMapping();
@@ -208,12 +223,13 @@ namespace FacilityMonitoring.ConsoleTesting {
             return netConfig;
         }
         static IList<DiscreteInput> ParseDiscreteInputs(ModbusDevice modbusDevice, IList<FacilityAction> actions) {
-            JArray channelArray = JArray.Parse(File.ReadAllText(@"C:\MonitorFiles\Epi1\DIGITAL.TXT"));
+            JArray channelArray = JArray.Parse(File.ReadAllText(boxDiscretePath));
             List<DiscreteInput> inputs = new List<DiscreteInput>();
             foreach (var elem in channelArray) {
                 DiscreteInput input = new DiscreteInput();
                 input.SystemChannel = elem["Input"].Value<int>();
                 input.Identifier = "Discrete " + input.SystemChannel;
+                input.DisplayName = input.Identifier;
                 input.ChannelAddress = new ChannelAddress();
                 input.ChannelAddress.Channel = elem["Address"]["Channel"].Value<int>();
                 input.ChannelAddress.ModuleSlot = elem["Address"]["Slot"].Value<int>();
@@ -253,70 +269,134 @@ namespace FacilityMonitoring.ConsoleTesting {
             }
             return inputs;
         }
-        static IList<FacilityAction> ParseActions(IList<DiscreteOutput> outputs) {
-            var actionArr = JArray.Parse(File.ReadAllText(@"C:\MonitorFiles\Epi1\ACTIONS.TXT"));
-            IList<FacilityAction> actions = actionArr.Select(p => CreateFacilityAction(p, outputs)).ToList();
-            foreach (var action in actions) {
-                Console.WriteLine("ActionName: {0}, ActionType: {1}  ActionOutputs", action.ActionName, action.ActionType);
-                foreach (var aoutput in action.ActionOutputs) {
-                    if (aoutput.Output is null) {
-                        Console.WriteLine("Output: {0} No Output", aoutput.OffLevel);
-                    } else {
-                        Console.WriteLine("Output: {0} AddrChannel: {1} AddrSlot: {2}",
-                            aoutput.Output.SystemChannel, aoutput.Output.ChannelAddress.Channel, aoutput.Output.ChannelAddress.ModuleSlot);
-                    }
-                }
+        static IList<ModbusActionMap> ParseActionMapping(IList<DiscreteOutput> outputs,IList<FacilityAction> actions,MonitoringBox box) {
+            var actionArr = JArray.Parse(File.ReadAllText(boxActionPath));
+            IList<ModbusActionMap> actionMapping = actionArr.Select(p => CreateActionMapping(p, outputs,actions,box)).ToList();
+            //foreach (var actionMap in actionMapping) {
+            //    Console.WriteLine("ActionName: {0}, ActionType: {1}  ActionOutputs", actionMap.FacilityAction.ActionName, action.ActionType);
+            //    foreach (var aoutput in action.ActionOutputs) {
+            //        if (aoutput.Output is null) {
+            //            Console.WriteLine("Output: {0} No Output", aoutput.OffLevel);
+            //        } else {
+            //            Console.WriteLine("Output: {0} AddrChannel: {1} AddrSlot: {2}",
+            //                aoutput.Output.SystemChannel, aoutput.Output.ChannelAddress.Channel, aoutput.Output.ChannelAddress.ModuleSlot);
+            //        }
+            //    }
+            //}
+            return actionMapping;
+        }
+
+        public static ModbusActionMap CreateActionMapping(JToken p,IList<DiscreteOutput> outputs,IList<FacilityAction> actions,MonitoringBox box) {
+            var actionId = p["ActionId"].Value<int>() + 1;
+            var action = actions.FirstOrDefault(e => e.Id == actionId);
+            if (action != null) {
+                ModbusActionMap actionMap = new ModbusActionMap();
+                ChannelAddress addr1 = new ChannelAddress() {
+                    Channel = p["O1"]["Address"]["Channel"].Value<int>(),
+                    ModuleSlot = p["O1"]["Address"]["Slot"].Value<int>()
+                };
+
+                ChannelAddress addr2 = new ChannelAddress() {
+                    Channel = p["O2"]["Address"]["Channel"].Value<int>(),
+                    ModuleSlot = p["O2"]["Address"]["Slot"].Value<int>()
+                };
+
+                ChannelAddress addr3 = new ChannelAddress() {
+                    Channel = p["O3"]["Address"]["Channel"].Value<int>(),
+                    ModuleSlot = p["O3"]["Address"]["Slot"].Value<int>()
+                };
+
+                var out1 = outputs.FirstOrDefault(e => e.ChannelAddress.Channel == addr1.Channel && e.ChannelAddress.ModuleSlot == addr1.ModuleSlot);
+                var out2 = outputs.FirstOrDefault(e => e.ChannelAddress.Channel == addr2.Channel && e.ChannelAddress.ModuleSlot == addr2.ModuleSlot);
+                var out3 = outputs.FirstOrDefault(e => e.ChannelAddress.Channel == addr3.Channel && e.ChannelAddress.ModuleSlot == addr3.ModuleSlot);
+
+                ActionOutput aout1 = new ActionOutput() {
+                    Output = out1,
+                    OnLevel = p["O1"]["OnLevel"].Value<int>() == 0 ? DiscreteState.Low : DiscreteState.High,
+                    OffLevel = p["O1"]["OffLevel"].Value<int>() == 0 ? DiscreteState.Low : DiscreteState.High,
+                };
+                ActionOutput aout2 = new ActionOutput() {
+                    Output = out2,
+                    OnLevel = p["O2"]["OnLevel"].Value<int>() == 0 ? DiscreteState.Low : DiscreteState.High,
+                    OffLevel = p["O2"]["OffLevel"].Value<int>() == 0 ? DiscreteState.Low : DiscreteState.High,
+                };
+                ActionOutput aout3 = new ActionOutput() {
+                    Output = out3,
+                    OnLevel = p["O3"]["OnLevel"].Value<int>() == 0 ? DiscreteState.Low : DiscreteState.High,
+                    OffLevel = p["O3"]["OffLevel"].Value<int>() == 0 ? DiscreteState.Low : DiscreteState.High,
+                };
+
+                action.ActionOutputs.Add(aout1);
+                action.ActionOutputs.Add(aout2);
+                action.ActionOutputs.Add(aout3);
+
+                actionMap.FacilityAction = action;
+                actionMap.FacilityActionId = action.Id;
+                actionMap.MonitoringBox = box;
+                actionMap.MonitoringBoxId = box.Id;
+                actionMap.ModbusAddress = new ModbusAddress();
+                actionMap.ModbusAddress.Address = p["Register"].Value<int>();
+                actionMap.ModbusAddress.RegisterType = (ModbusRegister)p["Type"].Value<int>();
+                actionMap.ModbusAddress.RegisterLength = 1;
+                return actionMap;
+            } else {
+                return null;
             }
-            return actions;
         }
-        public static FacilityAction CreateFacilityAction(JToken p, IList<DiscreteOutput> outputs) {
-            FacilityAction action = new FacilityAction();
-            action.Id = p["ActionId"].Value<int>() + 1;
-            action.ActionName = ToActionType(p["ActionType"].Value<int>()).ToString();
-            action.ActionOutputs = new List<ActionOutput>();
 
-            ChannelAddress addr1 = new ChannelAddress() {
-                Channel = p["O1"]["Address"]["Channel"].Value<int>(),
-                ModuleSlot = p["O1"]["Address"]["Slot"].Value<int>()
-            };
-            ChannelAddress addr2 = new ChannelAddress() {
-                Channel = p["O2"]["Address"]["Channel"].Value<int>(),
-                ModuleSlot = p["O2"]["Address"]["Slot"].Value<int>()
-            };
-            ChannelAddress addr3 = new ChannelAddress() {
-                Channel = p["O3"]["Address"]["Channel"].Value<int>(),
-                ModuleSlot = p["O3"]["Address"]["Slot"].Value<int>()
-            };
+        //public static FacilityAction CreateFacilityAction(JToken p, IList<DiscreteOutput> outputs,MonitoringBox box) {
+        //    FacilityAction action = new FacilityAction();
+        //    action.Id = p["ActionId"].Value<int>() + 1;
+        //    action.ActionName = ToActionType(p["ActionType"].Value<int>()).ToString();
+        //    action.ActionOutputs = new List<ActionOutput>();
 
-            var out1 = outputs.FirstOrDefault(e => e.ChannelAddress.Channel == addr1.Channel && e.ChannelAddress.ModuleSlot == addr1.ModuleSlot);
-            var out2 = outputs.FirstOrDefault(e => e.ChannelAddress.Channel == addr2.Channel && e.ChannelAddress.ModuleSlot == addr2.ModuleSlot);
-            var out3 = outputs.FirstOrDefault(e => e.ChannelAddress.Channel == addr3.Channel && e.ChannelAddress.ModuleSlot == addr3.ModuleSlot);
+        //    ChannelAddress addr1 = new ChannelAddress() {
+        //        Channel = p["O1"]["Address"]["Channel"].Value<int>(),
+        //        ModuleSlot = p["O1"]["Address"]["Slot"].Value<int>()
+        //    };
+        //    ChannelAddress addr2 = new ChannelAddress() {
+        //        Channel = p["O2"]["Address"]["Channel"].Value<int>(),
+        //        ModuleSlot = p["O2"]["Address"]["Slot"].Value<int>()
+        //    };
+        //    ChannelAddress addr3 = new ChannelAddress() {
+        //        Channel = p["O3"]["Address"]["Channel"].Value<int>(),
+        //        ModuleSlot = p["O3"]["Address"]["Slot"].Value<int>()
+        //    };
 
-            ActionOutput aout1 = new ActionOutput() {
-                Output = out1,
-                OnLevel = p["O1"]["OnLevel"].Value<int>() == 0 ? DiscreteState.Low : DiscreteState.High,
-                OffLevel = p["O1"]["OffLevel"].Value<int>() == 0 ? DiscreteState.Low : DiscreteState.High,
-            };
-            ActionOutput aout2 = new ActionOutput() {
-                Output = out2,
-                OnLevel = p["O2"]["OnLevel"].Value<int>() == 0 ? DiscreteState.Low : DiscreteState.High,
-                OffLevel = p["O2"]["OffLevel"].Value<int>() == 0 ? DiscreteState.Low : DiscreteState.High,
-            };
-            ActionOutput aout3 = new ActionOutput() {
-                Output = out3,
-                OnLevel = p["O3"]["OnLevel"].Value<int>() == 0 ? DiscreteState.Low : DiscreteState.High,
-                OffLevel = p["O3"]["OffLevel"].Value<int>() == 0 ? DiscreteState.Low : DiscreteState.High,
-            };
-            action.ActionOutputs.Add(aout1);
-            action.ActionOutputs.Add(aout2);
-            action.ActionOutputs.Add(aout3);
-            action.ActionType = ToActionType(p["ActionType"].Value<int>());
-            action.ModbusAddress = new ModbusAddress();
-            action.ModbusAddress.Address = p["Register"].Value<int>();
-            action.ModbusAddress.RegisterType = (ModbusRegister)p["Type"].Value<int>();
-            action.ModbusAddress.RegisterLength = 1;
-            return action;
-        }
+        //    var out1 = outputs.FirstOrDefault(e => e.ChannelAddress.Channel == addr1.Channel && e.ChannelAddress.ModuleSlot == addr1.ModuleSlot);
+        //    var out2 = outputs.FirstOrDefault(e => e.ChannelAddress.Channel == addr2.Channel && e.ChannelAddress.ModuleSlot == addr2.ModuleSlot);
+        //    var out3 = outputs.FirstOrDefault(e => e.ChannelAddress.Channel == addr3.Channel && e.ChannelAddress.ModuleSlot == addr3.ModuleSlot);
+
+        //    ActionOutput aout1 = new ActionOutput() {
+        //        Output = out1,
+        //        OnLevel = p["O1"]["OnLevel"].Value<int>() == 0 ? DiscreteState.Low : DiscreteState.High,
+        //        OffLevel = p["O1"]["OffLevel"].Value<int>() == 0 ? DiscreteState.Low : DiscreteState.High,
+        //    };
+        //    ActionOutput aout2 = new ActionOutput() {
+        //        Output = out2,
+        //        OnLevel = p["O2"]["OnLevel"].Value<int>() == 0 ? DiscreteState.Low : DiscreteState.High,
+        //        OffLevel = p["O2"]["OffLevel"].Value<int>() == 0 ? DiscreteState.Low : DiscreteState.High,
+        //    };
+        //    ActionOutput aout3 = new ActionOutput() {
+        //        Output = out3,
+        //        OnLevel = p["O3"]["OnLevel"].Value<int>() == 0 ? DiscreteState.Low : DiscreteState.High,
+        //        OffLevel = p["O3"]["OffLevel"].Value<int>() == 0 ? DiscreteState.Low : DiscreteState.High,
+        //    };
+        //    action.ActionOutputs.Add(aout1);
+        //    action.ActionOutputs.Add(aout2);
+        //    action.ActionOutputs.Add(aout3);
+        //    action.ActionType = ToActionType(p["ActionType"].Value<int>());
+        //    ModbusActionMap actionMap = new ModbusActionMap();
+        //    actionMap.FacilityAction = action;
+        //    actionMap.MonitoringBox = box;
+        //    actionMap.ModbusAddress = new ModbusAddress();
+        //    actionMap.ModbusAddress.Address = p["Register"].Value<int>();
+        //    actionMap.ModbusAddress.RegisterType = (ModbusRegister)p["Type"].Value<int>();
+        //    actionMap.ModbusAddress.RegisterLength = 1;
+        //    //action.ModbusActionMap = actionMap;
+
+        //    return action;
+        //}
         static IList<AnalogInput> ParseAnalogInputs(IList<FacilityAction> actions, ModbusDevice modDevice) {
             using var context = new FacilityContext();
             var sensor = context.Sensors.FirstOrDefault(e => e.Name == "H2 Detector-PPM");
@@ -324,7 +404,7 @@ namespace FacilityMonitoring.ConsoleTesting {
                 Console.WriteLine("Sensor Found!");
                 Console.WriteLine("Name: {0} Slope: {1} Offset: {2}", sensor.Name, sensor.Slope, sensor.Offset);
             }
-            var aInputs = JArray.Parse(File.ReadAllText(@"C:\MonitorFiles\Epi1\ANALOG.TXT"));
+            var aInputs = JArray.Parse(File.ReadAllText(boxAnalogPath));
             IList<AnalogInput> analogInputs = aInputs.Select(p => CreateAnalogInput(p, actions, modDevice, sensor)).ToList();
             Console.WriteLine("AnalogInputs: ");
             int count = 0;
@@ -351,6 +431,7 @@ namespace FacilityMonitoring.ConsoleTesting {
             AnalogInput aInput = new AnalogInput();
             aInput.SystemChannel = token["Input"].Value<int>();
             aInput.Identifier ="Analog " + aInput.SystemChannel;
+            aInput.DisplayName = aInput.Identifier;
             aInput.ChannelAddress = new ChannelAddress();
             aInput.ChannelAddress.Channel = token["Address"]["Channel"].Value<int>();
             aInput.ChannelAddress.ModuleSlot = token["Address"]["Slot"].Value<int>();
@@ -428,7 +509,7 @@ namespace FacilityMonitoring.ConsoleTesting {
             return aInput;
         }
         public static IList<DiscreteOutput> ParseOutputs(ModbusDevice modbusDevice) {
-            var outArr = JArray.Parse(File.ReadAllText(@"C:\MonitorFiles\Epi1\OUTPUT.TXT"));
+            var outArr = JArray.Parse(File.ReadAllText(boxOutputPath));
             IList<DiscreteOutput> outputs = outArr.Select(p => new DiscreteOutput {
                 ModbusDevice = modbusDevice,
                 ModbusDeviceId = modbusDevice.Id,
@@ -445,7 +526,7 @@ namespace FacilityMonitoring.ConsoleTesting {
                 SystemChannel = p["Output"].Value<int>(),
                 Connected = p["Connected"].Value<bool>(),
                 Identifier = "Output " + p["Output"].Value<int>().ToString(),
-                DisplayName = "Not Set",
+                DisplayName = "Output " + p["Output"].Value<int>().ToString(),
                 StartState = p["Start State"].Value<int>() == 0 ? DiscreteState.Low : DiscreteState.High
                 //ChannelState = p["Start State"].Value<int>() == 0 ? DiscreteState.Low : DiscreteState.High
             }).ToList();
@@ -456,7 +537,7 @@ namespace FacilityMonitoring.ConsoleTesting {
             return outputs;
         }
         public static IList<VirtualInput> ParseVirtualChannels(ModbusDevice modbusDevice, IList<FacilityAction> actions) {
-            var vInputs = JArray.Parse(File.ReadAllText(@"C:\MonitorFiles\Epi1\VIRTUAL.TXT"));
+            var vInputs = JArray.Parse(File.ReadAllText(boxVirtualPath));
             IList<VirtualInput> virtualInputs = vInputs.Select(e => CreateVirtualChannel(e, modbusDevice, actions)).ToList();
             foreach (var input in virtualInputs) {
                 Console.WriteLine("VirtualInput: {0} ActionId: {1}", input.SystemChannel, (input.Alert as DiscreteAlert).AlertLevel.FacilityActionId);

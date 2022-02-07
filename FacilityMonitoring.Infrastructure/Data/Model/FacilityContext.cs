@@ -18,7 +18,7 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
         public DbSet<FacilityZone> FacilityZones { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
-            optionsBuilder.UseSqlServer("server=172.20.4.20;database=MonitorTesting_New;" +
+            optionsBuilder.UseSqlServer("server=172.20.4.20;database=MonitoringDev3;" +
                 "User Id=aelmendorf;Password=Drizzle123!;");
         }
 
@@ -123,6 +123,20 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
                 .HasForeignKey<DiscreteLevel>(p => p.DiscrteAlertId)
                 .IsRequired(false);
 
+            builder.Entity<MonitoringBox>()
+                .HasMany(e => e.ModbusActionMapping)
+                .WithOne(e => e.MonitoringBox)
+                .HasForeignKey(e => e.MonitoringBoxId)
+                .IsRequired(true)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            builder.Entity<FacilityAction>()
+                .HasMany(e => e.ModbusActionMapping)
+                .WithOne(e => e.FacilityAction)
+                .HasForeignKey(e => e.FacilityActionId)
+                .IsRequired(true)
+                .OnDelete(DeleteBehavior.NoAction);
+
             builder.Entity<AnalogAlert>()
                 .HasMany(e => e.AlertLevels)
                 .WithOne(e => e.AnalogAlert)
@@ -148,6 +162,7 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
 
             SeedSensors(builder);
             SeedModules(builder);
+            SeedFacilityActions(builder);
         }
 
         private void SeedSensors(ModelBuilder builder) {
@@ -243,6 +258,39 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
             builder.Entity<Module>().HasData(dModule1, dModule2, aModule1, aModule2, oModule);
         }
 
+        private void SeedFacilityActions(ModelBuilder builder) {
+            FacilityAction action1 = new FacilityAction();
+            action1.ActionName = "Okay";
+            action1.ActionType = ActionType.Okay;
+            action1.Id = 1;
+
+            FacilityAction action2 = new FacilityAction();
+            action2.ActionName = "Alarm";
+            action2.ActionType = ActionType.Alarm;
+            action2.Id = 2;
+
+            FacilityAction action3 = new FacilityAction();
+            action3.ActionName = "Warning";
+            action3.ActionType = ActionType.Warning;
+            action3.Id = 3;
+
+            FacilityAction action4 = new FacilityAction();
+            action4.ActionName = "SoftWarn";
+            action4.ActionType = ActionType.SoftWarn;
+            action4.Id = 4;
+
+            FacilityAction action5 = new FacilityAction();
+            action5.ActionName = "Maintenance";
+            action5.ActionType = ActionType.Maintenance;
+            action5.Id = 5;
+
+            FacilityAction action6 = new FacilityAction();
+            action6.ActionName = "ResetWetFloor";
+            action6.ActionType = ActionType.Custom;
+            action6.Id = 6;
+
+            builder.Entity<FacilityAction>().HasData(action1, action2, action3, action4, action5, action6);
+        }
     }
 
     public class FacilityContextFactory : IDesignTimeDbContextFactory<FacilityContext> {
