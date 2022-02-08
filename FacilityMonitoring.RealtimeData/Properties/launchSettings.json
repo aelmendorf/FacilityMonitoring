@@ -1,11 +1,11 @@
 {
   "profiles": {
-    "FacilityMonitoring.DataService": {
+    "FacilityMonitoring.RealtimeData": {
       "commandName": "Project",
       "environmentVariables": {
         "DOTNET_ENVIRONMENT": "Development"
       },
-      "dotnetRunMessages": "true"
+      "dotnetRunMessages": true
     },
     "Docker": {
       "commandName": "Docker"

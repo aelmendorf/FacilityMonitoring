@@ -12,13 +12,14 @@ using FacilityMonitoring.Infrastructure.Data.MongoDB;
 namespace FacilityMonitoring.ConsoleTesting {
     public class Parsing {
         static async Task Main(string[] args) {
-            ParseConfiguation();
+            //ParseConfiguation();
+
             //await TestModbus();
             //await FixDiscreteNames("Epi1");
             //await FixAnalogNames("Epi1");
             //await FixOutputNames("Epi1");
             //await SetAlertNames();
-            //await TestModbusWithNames();
+            await TestModbusWithNames();
             //await TestingMongo();
             //await DB.InitAsync("monitoring_v2", "172.20.3.30", 27017);
             //await DB.DeleteAsync<DisplayConfig>("61fd79a9b37b0a184a9f2372");
@@ -142,17 +143,102 @@ namespace FacilityMonitoring.ConsoleTesting {
 
         static async Task CreateDisplayConfig() {
             await DB.InitAsync("monitoring_v2", "172.20.3.30", 27017);
-            MonitoringDevice device = new MonitoringDevice();
-            device.DeviceName = "Epi2 Monitoring";
-            await device.SaveAsync();
-            var displayConfig = GenerateDisplayHeaders();
-            await displayConfig.SaveAsync();
-            await device.DisplayConfig.AddAsync(displayConfig);
-            await device.SaveAsync();
+            using var context = new FacilityContext();
+            var epi1 = await context.Devices.OfType<MonitoringBox>().Include(e => e.Channels).FirstOrDefaultAsync(e => e.Identifier == "Epi1");
+            if(epi1!=null) {
+                Console.WriteLine("Monitoring Box found, create database");
+                MonitoringDevice device = new MonitoringDevice();
+                device.DeviceName = epi1.DisplayName;
+                
+                    
+
+            } else {
+                Console.WriteLine("Could not find monitoring box");
+            }
+
+            //MonitoringDevice device = new MonitoringDevice();
+            //device.DeviceName = "Epi2 Monitoring";
+            //await device.SaveAsync();
+            //var displayConfig = GenerateDisplayHeaders();
+            //await displayConfig.SaveAsync();
+            //await device.DisplayConfig.AddAsync(displayConfig);
+            //await device.SaveAsync();
+
             Console.WriteLine($"Device ObjectRef: {device.ID}");
             Console.WriteLine("Check the database");
         }
+        static DataConfiguration GenerateDisplayHeaders(FacilityContext context,MonitoringBox monitoring) {
+            DataConfiguration dataConfig = new DataConfiguration();
+            dataConfig.Iteration = 1;
+            if (monitoring != null) {
+                dataConfig.DiscreteConfig=context.Channels.OfType<DiscreteInput>()
+                    .Where(e => e.ModbusDeviceId == monitoring.Id)
+                    .OrderBy(e => e.SystemChannel)
+                    .Select(e => new DataConfig() { 
+                        Name = e.DisplayName, Bypass = e.Bypass, Display = e.Display, Enabled = e.Connected 
+                    }).ToList();
 
+                dataConfig.AnalogConfig = context.Channels.OfType<AnalogInput>()
+                    .Where(e => e.ModbusDeviceId == monitoring.Id)
+                    .OrderBy(e => e.SystemChannel)
+                    .Select(e => new DataConfig() {
+                        Name = e.DisplayName,
+                        Bypass = e.Bypass,
+                        Display = e.Display,
+                        Enabled = e.Connected
+                    }).ToList();
+
+                dataConfig.OutputConfig = context.Channels.OfType<OutputChannel>()
+                    .Where(e => e.ModbusDeviceId == monitoring.Id)
+                    .OrderBy(e => e.SystemChannel)
+                    .Select(e => new DataConfig() {
+                        Name = e.DisplayName,
+                        Bypass = e.Bypass,
+                        Display = e.Display,
+                        Enabled = e.Connected
+                    }).ToList();
+
+                dataConfig.VirtualConfig = context.Channels.OfType<VirtualInput>()
+                    .Where(e => e.ModbusDeviceId == monitoring.Id)
+                    .OrderBy(e => e.SystemChannel)
+                    .Select(e => new DataConfig() {
+                        Name = e.DisplayName,
+                        Bypass = e.Bypass,
+                        Display = e.Display,
+                        Enabled = e.Connected
+                    }).ToList();
+
+                dataConfig.ActionConfig = context.FacilityActions
+                    .Select(e => new DataConfig() {
+                        Name = e.ActionName,
+                        Bypass = false,
+                        Display = true,
+                        Enabled = true
+                    }).ToList();
+
+                dataConfig.AlertConfig = context.Alerts.Include(e => e.InputChannel)
+                    .Where(e => e.InputChannel.ModbusDeviceId == monitoring.Id)
+                    .OrderBy(e => e.ModbusAddress.Address)
+                    .Select(e => new DataConfig() {
+                        Name = e.DisplayName,
+                        Bypass = e.Bypass,
+                        Display = e.InputChannel.Display,
+                        Enabled = e.Enabled && e.InputChannel.Connected
+                    }).ToList();
+
+                dataConfig.DeviceConfig = new DataConfig() {
+                    Name = monitoring.DisplayName + " State",
+                    Bypass=false,
+                    Display=true,
+                    Enabled=true
+                };
+                //displayConfig.AlertHeaders = context.Channels.OfType<InputChannel>().Include(e => e.Alert)
+                //    .Where(e => e.ModbusDeviceId == monitoring.Id)
+                //    .OrderBy(e => e.Alert.ModbusAddress.Address)
+                //    .Select(e => e.Alert.DisplayName).ToArray();
+            }
+            return dataConfig;
+        }  
         static async Task TestModbus() {
             using var context = new FacilityContext();
             var monitoring = context.Devices.OfType<MonitoringBox>()
@@ -208,9 +294,9 @@ namespace FacilityMonitoring.ConsoleTesting {
             using var context = new FacilityContext();
             var monitoring = await context.Devices.OfType<MonitoringBox>()
                 .Include(e => e.Channels)
-                .FirstOrDefaultAsync(e=>e.Identifier=="Epi1");
+                .FirstOrDefaultAsync(e=>e.Identifier=="Epi2");
             if (monitoring != null) {
-                var channels = await context.Channels.OfType<VirtualInput>().Include(e => e.Alert).ToListAsync();
+                var channels = await context.Channels.OfType<AnalogInput>().Include(e => e.Alert).ToListAsync();
                 foreach(var ain in channels) {
                     ain.Alert.DisplayName = ain.DisplayName + " Alert";
                 }
@@ -227,59 +313,6 @@ namespace FacilityMonitoring.ConsoleTesting {
             }
             Console.ReadKey();
         }
-        
-        static DisplayConfig GenerateDisplayHeaders() {
-            using var context = new FacilityContext();
-            DisplayConfig displayConfig = new DisplayConfig();
-            displayConfig.Iteration = 1;
-            var monitoring = context.Devices.OfType<MonitoringBox>()
-                .FirstOrDefault(e => e.Identifier == "Epi1");
-            if (monitoring != null) {
-                displayConfig.DiscreteHeaders = context.Channels.OfType<DiscreteInput>()
-                    .Where(e => e.ModbusDeviceId == monitoring.Id)
-                    .OrderBy(e => e.SystemChannel)
-                    .Select(e => e.DisplayName)
-                    .ToArray();
-
-                displayConfig.AnalogHeaders = context.Channels.OfType<AnalogInput>()
-                    .Where(e => e.ModbusDeviceId == monitoring.Id)
-                    .OrderBy(e => e.SystemChannel)
-                    .Select(e => e.DisplayName)
-                    .ToArray();
-
-                displayConfig.OutputHeaders = context.Channels.OfType<OutputChannel>()
-                    .Where(e => e.ModbusDeviceId == monitoring.Id)
-                    .OrderBy(e => e.SystemChannel)
-                    .Select(e => e.DisplayName)
-                    .ToArray();
-
-                displayConfig.VirtualHeaders = context.Channels.OfType<VirtualInput>()
-                    .Where(e => e.ModbusDeviceId == monitoring.Id)
-                    .OrderBy(e => e.SystemChannel)
-                    .Select(e => e.DisplayName)
-                    .ToArray();
-                displayConfig.ActionHeaders = new string[1];
-
-                //displayConfig.ActionHeaders = context.FacilityActions.Include(e=>e.ModbusActionMap)
-                //    .OrderBy(e => e.ModbusActionMap.ModbusAddress.Address)
-                //    .Select(e => e.ActionName)
-                //    .ToArray();
-
-                displayConfig.AlertHeaders = context.Alerts.Include(e => e.InputChannel)
-                    .Where(e => e.InputChannel.ModbusDeviceId == monitoring.Id)
-                    .OrderBy(e => e.ModbusAddress.Address)
-                    .Select(e => e.DisplayName).ToArray();
-
-                displayConfig.DeviceHeader = monitoring.DisplayName + " State";
-
-                //displayConfig.AlertHeaders = context.Channels.OfType<InputChannel>().Include(e => e.Alert)
-                //    .Where(e => e.ModbusDeviceId == monitoring.Id)
-                //    .OrderBy(e => e.Alert.ModbusAddress.Address)
-                //    .Select(e => e.Alert.DisplayName).ToArray();
-            }
-            return displayConfig;
-        }
-        
         static async Task TestModbusWithNames() {
             using var context = new FacilityContext();
             var monitoring = context.Devices.OfType<MonitoringBox>()
@@ -320,7 +353,6 @@ namespace FacilityMonitoring.ConsoleTesting {
                 networkConfig.ModbusConfig.SlaveAddress = 1;
                 var result = await ModbusService.Read(networkConfig.IPAddress, 502, networkConfig.ModbusConfig);
                 var channelMapping = networkConfig.ModbusConfig.ChannelMapping;
-
                 var discreteInputs = new ArraySegment<bool>(result.DiscreteInputs, channelMapping.DiscreteStart, (channelMapping.DiscreteStop - channelMapping.DiscreteStart)+1).ToList();
                 var outputs = new ArraySegment<bool>(result.DiscreteInputs, channelMapping.OutputStart, (channelMapping.OutputStop - channelMapping.OutputStart)+1).ToList();
                 var actions = new ArraySegment<bool>(result.DiscreteInputs, channelMapping.ActionStart, (channelMapping.ActionStop - channelMapping.ActionStart)+1).ToList();
@@ -366,7 +398,6 @@ namespace FacilityMonitoring.ConsoleTesting {
                 Console.WriteLine("Error: Could not find monitoring device");
             }
         }
-
         static void ParseConfiguation() {
             Console.WriteLine("Creating ModbusDevice,Please wait..");
             //FacilityParser.CreateModbusDevices();
@@ -378,7 +409,6 @@ namespace FacilityMonitoring.ConsoleTesting {
             Console.WriteLine("Press any key..");
             Console.ReadKey();
         }
-
         static async Task FixDiscreteNames(string box) {
             Console.WriteLine("Fixing Discrete Names, Please Wait....");
             using var context = new FacilityContext();
@@ -404,7 +434,6 @@ namespace FacilityMonitoring.ConsoleTesting {
             Console.WriteLine();
             Console.ReadKey();
         }
-
         static async Task FixAnalogNames(string box) {
             Console.WriteLine("Fixing Analog Names, Please Wait....");
             using var context = new FacilityContext();

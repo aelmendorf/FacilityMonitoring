@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MongoDB.Entities;
+﻿using MongoDB.Entities;
 
 namespace FacilityMonitoring.Infrastructure.Data.MongoDB {
 
@@ -14,24 +9,38 @@ namespace FacilityMonitoring.Infrastructure.Data.MongoDB {
     }
     public class MonitoringDevice:Entity {
         public string DeviceName { get; set; }
-
-        public Many<DisplayConfig> DisplayConfig { get; set; }
+        public Many<DataConfiguration> DataConfigurations { get; set; }
         public Many<Data> DeviceData { get; set; }
         public MonitoringDevice() {
             this.InitOneToMany(() => DeviceData);
-            this.InitOneToMany(() => DisplayConfig);
+            this.InitOneToMany(() => DataConfigurations);
         }
     }
 
-    public class DisplayConfig:Entity {
+    public class DataConfiguration:Entity {
         public int Iteration { get; set; }
-        public string[] AnalogHeaders { get; set; }
-        public string[] AlertHeaders { get; set; }
-        public string[] DiscreteHeaders { get; set; }
-        public string[] VirtualHeaders { get; set; }
-        public string[] OutputHeaders { get; set; }
-        public string[] ActionHeaders { get; set; }
-        public string DeviceHeader { get; set; }
+        public List<DataConfig> AnalogConfig { get; set; }
+        public List<DataConfig> DiscreteConfig { get; set; }
+        public List<DataConfig> VirtualConfig { get; set; }
+        public List<DataConfig> OutputConfig { get; set; }
+        public List<DataConfig> AlertConfig { get; set; }
+        public List<DataConfig> ActionConfig { get; set; }
+        public DataConfig DeviceConfig { get; set; }
+
+        //public string[] AnalogHeaders { get; set; }
+        //public string[] AlertHeaders { get; set; }
+        //public string[] DiscreteHeaders { get; set; }
+        //public string[] VirtualHeaders { get; set; }
+        //public string[] OutputHeaders { get; set; }
+        //public string[] ActionHeaders { get; set; }
+        //public string DeviceHeader { get; set; }
+    }
+
+    public class DataConfig {
+        public string Name { get; set; }
+        public bool Display { get; set; }
+        public bool Enabled { get; set; }
+        public bool Bypass { get; set; }
     }
 
     public class Data:Entity {

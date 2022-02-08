@@ -435,8 +435,6 @@ namespace FacilityMonitoring.ConsoleTesting {
             aInput.ChannelAddress = new ChannelAddress();
             aInput.ChannelAddress.Channel = token["Address"]["Channel"].Value<int>();
             aInput.ChannelAddress.ModuleSlot = token["Address"]["Slot"].Value<int>();
-            aInput.Identifier = "System Channel: " + aInput.SystemChannel;
-            aInput.DisplayName = "Not Set";
 
             aInput.ModbusAddress = new ModbusAddress();
             aInput.ModbusAddress.Address = token["MRI"]["Register"].Value<int>();
