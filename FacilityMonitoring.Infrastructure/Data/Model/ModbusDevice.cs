@@ -61,6 +61,7 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
     }
 
     public class MonitoringBox:ModbusDevice {
+        public int DataConfigIteration { get; set; }
         public ICollection<ModbusActionMap> ModbusActionMapping { get; set; }
         public ICollection<Module> Modules { get; set; } = new List<Module>();
     }

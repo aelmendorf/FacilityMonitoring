@@ -556,7 +556,6 @@ namespace FacilityMonitoring.ConsoleTesting {
             vInput.ModbusAddress.RegisterType = (ModbusRegister)token["MRI"]["Type"].Value<int>();
             vInput.ModbusAddress.RegisterLength = 1;
 
-
             vInput.Connected = token["Connected"].Value<bool>();
             vInput.ModbusDevice = modbusDevice;
             vInput.ModbusDeviceId = modbusDevice.Id;

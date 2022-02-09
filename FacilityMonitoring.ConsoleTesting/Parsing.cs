@@ -19,7 +19,10 @@ namespace FacilityMonitoring.ConsoleTesting {
             //await FixAnalogNames("Epi1");
             //await FixOutputNames("Epi1");
             //await SetAlertNames();
-            await TestModbusWithNames();
+            //await TestModbusWithNames();
+            //await CreateDisplayConfig();
+            //await LogDataTest();
+            //await AlertEmailTest();
             //await TestingMongo();
             //await DB.InitAsync("monitoring_v2", "172.20.3.30", 27017);
             //await DB.DeleteAsync<DisplayConfig>("61fd79a9b37b0a184a9f2372");
@@ -100,18 +103,66 @@ namespace FacilityMonitoring.ConsoleTesting {
         }
 
         static async Task LogDataTest() {
-            await DB.InitAsync("monitoring_v2", "172.20.3.30", 27017);
+            await DB.InitAsync("monitoring", "172.20.3.30", 27017);
             using var context = new FacilityContext();
             var monitoring = context.Devices.OfType<MonitoringBox>()
-                .FirstOrDefault(e => e.Identifier == "Epi2");
+                .FirstOrDefault(e => e.Identifier == "Epi1");
             if (monitoring != null) {
+                Console.WriteLine($"Epi1 Box found, DataRef: {monitoring.DataReference}");
                 var dataDevice = await DB.Find<MonitoringDevice>().OneAsync(monitoring.DataReference);
+                var networkConfig = monitoring.NetworkConfiguration;
+                networkConfig.ModbusConfig.SlaveAddress = 1;
+                var channelMapping = networkConfig.ModbusConfig.ChannelMapping;
                 if (dataDevice != null) {
-                    var networkConfig = monitoring.NetworkConfiguration;
-                    networkConfig.ModbusConfig.SlaveAddress = 1;
-                    var result = await ModbusService.Read(networkConfig.IPAddress, 502, networkConfig.ModbusConfig);
-                    var channelMapping = networkConfig.ModbusConfig.ChannelMapping;
+                    Console.WriteLine($"Data device found,logging started, Id: {dataDevice.ID}");
+                    var dataConfig = dataDevice.DataConfigurations.FirstOrDefault(e => e.Iteration == 1);
+                    do {
+                        var result = await ModbusService.Read(networkConfig.IPAddress, networkConfig.Port, networkConfig.ModbusConfig);
+                        var discreteInputs = new ArraySegment<bool>(result.DiscreteInputs, channelMapping.DiscreteStart, (channelMapping.DiscreteStop - channelMapping.DiscreteStart) + 1).ToArray();
+                        var outputs = new ArraySegment<bool>(result.DiscreteInputs, channelMapping.OutputStart, (channelMapping.OutputStop - channelMapping.OutputStart) + 1).ToArray();
+                        var actions = new ArraySegment<bool>(result.DiscreteInputs, channelMapping.ActionStart, (channelMapping.ActionStop - channelMapping.ActionStart) + 1).ToArray();
+                        var analogInputs = new ArraySegment<ushort>(result.InputRegisters, channelMapping.AnalogStart, (channelMapping.AnalogStop - channelMapping.AnalogStart) + 1).ToArray();
+                        var alerts = new ArraySegment<ushort>(result.HoldingRegisters, channelMapping.AlertStart, (channelMapping.AlertStop - channelMapping.AlertStart) + 1).ToArray();
+                        var devState = result.HoldingRegisters[channelMapping.DeviceStart];
+                        Data data = new Data();
+                        data.DiscreteInputs = discreteInputs;
+                        data.Outputs = outputs;
+                        data.Actions = actions;
+                        data.Alerts = alerts;
+                        data.AnalogInputs = analogInputs;
+                        data.DeviceState = devState;
+                        data.VirtualInputs = result.Coils;
+                        data.DisplayConfigIteration = dataConfig!=null ? dataConfig.Iteration:0;
+                        data.TimeStamp = DateTime.Now;
+                        await data.SaveAsync();
+                        await dataDevice.DeviceData.AddAsync(data);
+                        await dataDevice.SaveAsync();
+                        Console.WriteLine("Press Q to quit, any other key to continue");
+                    } while (Console.ReadKey().Key != ConsoleKey.Q);
+                    Console.WriteLine("Completed");
+                } else {
+                    Console.WriteLine("Error: Could not find MongoDB device");
+                }
+            } else {
+                Console.WriteLine("Error: Could not find monitoring device");
+            }
+        }
 
+        static async Task AlertEmailTest() {
+            await DB.InitAsync("monitoring", "172.20.3.30", 27017);
+            using var context = new FacilityContext();
+            var monitoring = context.Devices.OfType<MonitoringBox>()
+                .FirstOrDefault(e => e.Identifier == "Epi1");
+            if (monitoring != null) {
+                Console.WriteLine($"Epi1 Box found, DataRef: {monitoring.DataReference}");
+                var dataDevice = await DB.Find<MonitoringDevice>().OneAsync(monitoring.DataReference);
+                var networkConfig = monitoring.NetworkConfiguration;
+                networkConfig.ModbusConfig.SlaveAddress = 1;
+                var channelMapping = networkConfig.ModbusConfig.ChannelMapping;
+                if (dataDevice != null) {
+                    Console.WriteLine($"Data device found,logging started, Id: {dataDevice.ID}");
+                    var dataConfig = dataDevice.DataConfigurations.FirstOrDefault(e => e.Iteration == 1);
+                    var result = await ModbusService.Read(networkConfig.IPAddress, networkConfig.Port, networkConfig.ModbusConfig);
                     var discreteInputs = new ArraySegment<bool>(result.DiscreteInputs, channelMapping.DiscreteStart, (channelMapping.DiscreteStop - channelMapping.DiscreteStart) + 1).ToArray();
                     var outputs = new ArraySegment<bool>(result.DiscreteInputs, channelMapping.OutputStart, (channelMapping.OutputStop - channelMapping.OutputStart) + 1).ToArray();
                     var actions = new ArraySegment<bool>(result.DiscreteInputs, channelMapping.ActionStart, (channelMapping.ActionStop - channelMapping.ActionStart) + 1).ToArray();
@@ -126,36 +177,122 @@ namespace FacilityMonitoring.ConsoleTesting {
                     data.AnalogInputs = analogInputs;
                     data.DeviceState = devState;
                     data.VirtualInputs = result.Coils;
-                    data.DisplayConfigIteration = 1;
+                    data.DisplayConfigIteration = dataConfig != null ? dataConfig.Iteration : 0;
+                    data.TimeStamp = DateTime.Now;
                     await data.SaveAsync();
                     await dataDevice.DeviceData.AddAsync(data);
                     await dataDevice.SaveAsync();
-                    Console.WriteLine();
+                    Console.WriteLine("AnalogInputs: ");
+                    if (dataConfig.AnalogConfig.Count() == data.AnalogInputs.Count()) {
+                        for(int i=0; i<dataConfig.AnalogConfig.Count(); i++) {
+                            if (dataConfig.AnalogConfig[i].Enabled) {
+                                Console.WriteLine($"{dataConfig.AnalogConfig[i].Name}: {data.AnalogInputs[i]}");
+                            }
+
+                        }
+                    } else{
+                        Console.WriteLine("Analog lengths don't match...");
+                        Console.WriteLine($"AnalogConfig: {dataConfig.AnalogConfig.Count()}, AnalogInputs: {data.AnalogInputs.Count()}");
+                    }
+
+                    Console.WriteLine("DiscreteInputs: ");
+                    if (dataConfig.DiscreteConfig.Count() == data.DiscreteInputs.Count()) {
+                        for (int i = 0; i < dataConfig.DiscreteConfig.Count(); i++) {
+                            if (dataConfig.DiscreteConfig[i].Enabled) {
+                                Console.WriteLine($"{dataConfig.DiscreteConfig[i].Name}: {data.DiscreteInputs[i]}");
+                            }
+                        }
+                    } else {
+                        Console.WriteLine("Discrete lengths don't match...");
+                        Console.WriteLine($"DiscreteConfig: {dataConfig.DiscreteConfig.Count()}, DiscreteInputs: {data.DiscreteInputs.Count()}");
+                    }
+
+                    Console.WriteLine("Alerts:");
+                    if (dataConfig.AlertConfig.Count() == data.Alerts.Count()) {
+                        for (int i = 0; i < dataConfig.AlertConfig.Count(); i++) {
+                            if (dataConfig.AlertConfig[i].Enabled) {
+                                Console.WriteLine($"{dataConfig.AlertConfig[i].Name}: {((ActionType)data.Alerts[i]).ToString()}");
+                            }
+                        }
+                    } else {
+                        Console.WriteLine("Alert lengths don't match...");
+                        Console.WriteLine($"AlertConfig: {dataConfig.AlertConfig.Count()}, Alerts: {data.Alerts.Count()}");
+                    }
+
+                    Console.WriteLine("Outputs:");
+                    if (dataConfig.OutputConfig.Count() == data.Outputs.Count()) {
+                        for (int i = 0; i < dataConfig.OutputConfig.Count(); i++) {
+                            if(dataConfig.OutputConfig[i].Enabled){
+                                Console.WriteLine($"{dataConfig.OutputConfig[i].Name}: {data.Outputs[i]}");
+                            }
+                        }
+                    } else {
+                        Console.WriteLine("Output lengths don't match...");
+                        Console.WriteLine($"OutputConfig: {dataConfig.OutputConfig.Count()}, Outputs: {data.Outputs.Count()}");
+                    }
+
+                    Console.WriteLine("Actions:");
+                    if (dataConfig.ActionConfig.Count() == data.Actions.Count()) {
+                        for (int i = 0; i < dataConfig.ActionConfig.Count(); i++) {
+                            if (dataConfig.ActionConfig[i].Enabled) {
+                                Console.WriteLine($"{dataConfig.ActionConfig[i].Name}: {data.Actions[i]}");
+                            }
+                        }
+                    } else {
+                        Console.WriteLine("Action lengths don't match...");
+                        Console.WriteLine($"ActionConfig: {dataConfig.ActionConfig.Count()}, Actions: {data.Actions.Count()}");
+                    }
+
+                    Console.WriteLine("VirtualInputs: ");
+                    if (dataConfig.VirtualConfig.Count() == data.VirtualInputs.Count()) {
+                        for (int i = 0; i < dataConfig.VirtualConfig.Count(); i++) {
+                            if (dataConfig.VirtualConfig[i].Enabled) {
+                                Console.WriteLine($"{dataConfig.VirtualConfig[i].Name}: {data.VirtualInputs[i]}");
+                            }
+                        }
+                    } else {
+                        Console.WriteLine("VirtualInput lengths don't match...");
+                        Console.WriteLine($"ActionConfig: {dataConfig.VirtualConfig.Count()}, VirtualInput: {data.VirtualInputs.Count()}");
+                    }
+
                 } else {
                     Console.WriteLine("Error: Could not find MongoDB device");
                 }
             } else {
                 Console.WriteLine("Error: Could not find monitoring device");
             }
-            Console.ReadKey();
-
         }
 
         static async Task CreateDisplayConfig() {
-            await DB.InitAsync("monitoring_v2", "172.20.3.30", 27017);
+            await DB.InitAsync("monitoring", "172.20.3.30", 27017);
             using var context = new FacilityContext();
             var epi1 = await context.Devices.OfType<MonitoringBox>().Include(e => e.Channels).FirstOrDefaultAsync(e => e.Identifier == "Epi1");
             if(epi1!=null) {
                 Console.WriteLine("Monitoring Box found, create database");
                 MonitoringDevice device = new MonitoringDevice();
                 device.DeviceName = epi1.DisplayName;
-                
-                    
-
+                await device.SaveAsync();
+                var dataConfiguration = GenerateDisplayHeaders(context, epi1);
+                dataConfiguration.Iteration = 1;
+                await dataConfiguration.SaveAsync();
+                await device.DataConfigurations.AddAsync(dataConfiguration);
+                await device.SaveAsync();
+                Console.WriteLine($"Device ObjectRef: {device.ID}");
+                epi1.DataReference = device.ID;
+                epi1.DataConfigIteration = 1;
+                context.Update(epi1);
+                var ret= await context.SaveChangesAsync();
+                if (ret>0) {
+                    Console.WriteLine("Check database");
+                } else {
+                    Console.WriteLine("Error: Failed to save monitoring box");
+                }
+                  
             } else {
                 Console.WriteLine("Could not find monitoring box");
             }
-
+            Console.WriteLine("Press any key to exit");
+            Console.ReadKey();
             //MonitoringDevice device = new MonitoringDevice();
             //device.DeviceName = "Epi2 Monitoring";
             //await device.SaveAsync();
@@ -163,9 +300,8 @@ namespace FacilityMonitoring.ConsoleTesting {
             //await displayConfig.SaveAsync();
             //await device.DisplayConfig.AddAsync(displayConfig);
             //await device.SaveAsync();
+            //Console.WriteLine($"Device ObjectRef: {device.ID}");
 
-            Console.WriteLine($"Device ObjectRef: {device.ID}");
-            Console.WriteLine("Check the database");
         }
         static DataConfiguration GenerateDisplayHeaders(FacilityContext context,MonitoringBox monitoring) {
             DataConfiguration dataConfig = new DataConfiguration();
@@ -175,7 +311,10 @@ namespace FacilityMonitoring.ConsoleTesting {
                     .Where(e => e.ModbusDeviceId == monitoring.Id)
                     .OrderBy(e => e.SystemChannel)
                     .Select(e => new DataConfig() { 
-                        Name = e.DisplayName, Bypass = e.Bypass, Display = e.Display, Enabled = e.Connected 
+                        Name = e.DisplayName, 
+                        Bypass = e.Bypass, 
+                        Display = e.Display,
+                        Enabled = e.Connected 
                     }).ToList();
 
                 dataConfig.AnalogConfig = context.Channels.OfType<AnalogInput>()
@@ -223,7 +362,7 @@ namespace FacilityMonitoring.ConsoleTesting {
                         Name = e.DisplayName,
                         Bypass = e.Bypass,
                         Display = e.InputChannel.Display,
-                        Enabled = e.Enabled && e.InputChannel.Connected
+                        Enabled = e.InputChannel.Connected
                     }).ToList();
 
                 dataConfig.DeviceConfig = new DataConfig() {

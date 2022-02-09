@@ -38,6 +38,7 @@ namespace FacilityMonitoring.Infrastructure.Data.MongoDB {
 
     public class DataConfig {
         public string Name { get; set; }
+        public int AlertIndex { get; set; }
         public bool Display { get; set; }
         public bool Enabled { get; set; }
         public bool Bypass { get; set; }
