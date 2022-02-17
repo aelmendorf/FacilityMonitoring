@@ -22,7 +22,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FacilityMonitoring.DataLogg
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{8E021957-6B7A-43A4-A6AB-F8A1BF165601}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FacilityMonitoring.RealtimeData", "FacilityMonitoring.RealtimeData\FacilityMonitoring.RealtimeData.csproj", "{74DF0B1B-9368-428D-B107-CA9C0D225C4C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FacilityMonitoring.RealtimeData", "FacilityMonitoring.RealtimeData\FacilityMonitoring.RealtimeData.csproj", "{74DF0B1B-9368-428D-B107-CA9C0D225C4C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

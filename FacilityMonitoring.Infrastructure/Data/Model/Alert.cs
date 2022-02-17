@@ -1,5 +1,4 @@
 ﻿namespace FacilityMonitoring.Infrastructure.Data.Model {
-
     public class Alert {
         public int Id { get; set; }
         public string DisplayName { get; set; }

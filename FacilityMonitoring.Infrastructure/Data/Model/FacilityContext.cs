@@ -19,7 +19,7 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
             optionsBuilder.UseSqlServer("server=172.20.4.20;database=MonitorDeviceModel;" +
-                "User Id=aelmendorf;Password=Drizzle123!;");
+              "User Id=aelmendorf;Password=Drizzle123!;");
         }
 
         protected override void OnModelCreating(ModelBuilder builder) {
@@ -42,7 +42,6 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
             builder.Entity<DiscreteLevel>().HasBaseType<AlertLevel>();
             builder.Entity<AnalogLevel>().HasBaseType<AlertLevel>();
 
-
             builder.Entity<Channel>()
                 .OwnsOne(p => p.ChannelAddress);
 
@@ -54,9 +53,6 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
                 .OwnsOne(p => p.ModbusConfig, (p) => { 
                     p.OwnsOne(e => e.ChannelMapping); 
                 });
-
-            //builder.Entity<ModbusDevice>()
-            //    .OwnsOne(p => p.ChannelMapping);
 
             builder.Entity<FacilityAction>()
                 .Property(e => e.Id)
@@ -96,12 +92,6 @@ namespace FacilityMonitoring.Infrastructure.Data.Model {
                 .WithOne(e => e.InputChannel)
                 .HasForeignKey<Alert>(p => p.InputChannelId)
                 .IsRequired(false);
-
-            //builder.Entity<AnalogInput>()
-            //    .HasOne(p => p.AnalogAlert)
-            //    .WithOne(p => p.AnalogInput)
-            //    .HasForeignKey<AnalogAlert>(p => p.AnalogInputId)
-            //    .IsRequired(false);
 
             builder.Entity<AnalogInput>()
                 .HasOne(p => p.Sensor)

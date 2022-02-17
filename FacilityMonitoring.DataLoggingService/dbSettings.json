@@ -1,0 +1,8 @@
+{
+  "ServiceConfig": {
+    "Database": "monitoring",
+    "DatabaseIp": "172.20.3.30",
+    "Port": 27017,
+    "DeviceId": "Epi1"
+  }
+}

@@ -8,31 +8,18 @@ using MongoDB.Entities;
 var builder = Host.CreateDefaultBuilder(args);
 
 builder.ConfigureAppConfiguration((hostContext, configuration) => {
-    configuration.Sources.Clear();
-
-    IHostEnvironment env = hostContext.HostingEnvironment;
-
-    configuration
-        .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-        .AddJsonFile($"appsettings.{env.EnvironmentName}.json", true, true);
-
-    IConfigurationRoot configurationRoot = configuration.Build();
-    DatabaseSettings databaseSettings = new();
-    configurationRoot.GetSection(nameof(DatabaseSettings)).Bind(databaseSettings);
-    hostContext.Configuration.Get<DatabaseSettings>();
-
+    configuration.AddJsonFile("dbSettings.json", optional: true, reloadOnChange: true);
 });
 
 builder.ConfigureServices((hostContext,services) => {
-    services.Configure<DatabaseSettings>(hostContext.Configuration.GetSection(nameof(DatabaseSettings)));
+    services.Configure<ServiceConfiguration>(hostContext.Configuration.GetSection(ServiceConfiguration.Section));
+    ServiceConfiguration sConfig = new();
+    hostContext.Configuration.GetSection(ServiceConfiguration.Section).Bind(sConfig);
     Task.Run(async () => {
-        await DB.InitAsync("wrapper", "172.20.3.30", 27017);
+        await DB.InitAsync(sConfig.Database, sConfig.DatabaseIP,sConfig.Port);
     }).GetAwaiter().GetResult();
-
-    services.AddSingleton<IDataRecordService>(new DataRecordService());
     services.AddHostedService<Worker>();
     services.AddDbContext<FacilityContext>();
-   //services.AddTransient<IFacilityRepository, FacilityRepository>();
     services.AddTransient<IDataRecordService, DataRecordService>();
     services.AddTransient<IDeviceController, DeviceController>();
 });

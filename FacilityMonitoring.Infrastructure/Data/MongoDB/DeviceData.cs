@@ -10,7 +10,7 @@ namespace FacilityMonitoring.Infrastructure.Data.MongoDB {
     public class MonitoringDevice:Entity {
         public string DeviceName { get; set; }
         public Many<DataConfiguration> DataConfigurations { get; set; }
-        public Many<Data> DeviceData { get; set; }
+        public Many<DataRecord> DeviceData { get; set; }
         public MonitoringDevice() {
             this.InitOneToMany(() => DeviceData);
             this.InitOneToMany(() => DataConfigurations);
@@ -18,6 +18,8 @@ namespace FacilityMonitoring.Infrastructure.Data.MongoDB {
     }
 
     public class DataConfiguration:Entity {
+        public Many<DataRecord> DataRecords { get; set; }
+        public One<MonitoringDevice> MonitoringDevice { get; set; }
         public int Iteration { get; set; }
         public List<DataConfig> AnalogConfig { get; set; }
         public List<DataConfig> DiscreteConfig { get; set; }
@@ -26,26 +28,23 @@ namespace FacilityMonitoring.Infrastructure.Data.MongoDB {
         public List<DataConfig> AlertConfig { get; set; }
         public List<DataConfig> ActionConfig { get; set; }
         public DataConfig DeviceConfig { get; set; }
-
-        //public string[] AnalogHeaders { get; set; }
-        //public string[] AlertHeaders { get; set; }
-        //public string[] DiscreteHeaders { get; set; }
-        //public string[] VirtualHeaders { get; set; }
-        //public string[] OutputHeaders { get; set; }
-        //public string[] ActionHeaders { get; set; }
-        //public string DeviceHeader { get; set; }
+        public DataConfiguration() {
+            this.InitOneToMany(() => DataRecords);
+        }
     }
 
     public class DataConfig {
         public string Name { get; set; }
         public int AlertIndex { get; set; }
+        public int DataIndex { get; set; }
         public bool Display { get; set; }
         public bool Enabled { get; set; }
         public bool Bypass { get; set; }
     }
 
-    public class Data:Entity {
-        public int DisplayConfigIteration { get; set; }
+    public class DataRecord : Entity {
+        public One<DataConfiguration> DataConfig { get; set; }
+        public int DataConfigIteration { get; set; }
         public DateTime TimeStamp { get; set; }
         public ushort[] AnalogInputs { get; set; }
         public ushort[] Alerts { get; set; }
