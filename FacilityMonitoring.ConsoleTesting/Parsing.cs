@@ -20,7 +20,7 @@ namespace FacilityMonitoring.ConsoleTesting {
             //await FixAnalogNames("Epi1");
             //await FixOutputNames("Epi1");
             //await SetAlertNames();
-            //await TestModbusWithNames();
+            await TestModbusWithNames();
             //await CreateDisplayConfig();
             //await GetDataRecordsTest();
             //await LogDataTest();
