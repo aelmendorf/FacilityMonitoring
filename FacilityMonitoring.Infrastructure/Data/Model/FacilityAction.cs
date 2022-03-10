@@ -2,7 +2,6 @@
 using System.Collections.ObjectModel;
 
 namespace FacilityMonitoring.Infrastructure.Data.Model {
-
     public enum ActionType {
         Okay = 6,
         Alarm = 5,
